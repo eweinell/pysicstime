@@ -1,0 +1,1025 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Eigenzeit &amp; Zeitdilatation – Eine interaktive Reise</title>
+<style>
+  :root {
+    --bg: #0b0e1a;
+    --bg2: #121833;
+    --card: #181f3d;
+    --card2: #1f2850;
+    --text: #e8ecff;
+    --muted: #9aa3c7;
+    --accent: #5eead4;
+    --accent2: #f472b6;
+    --accent3: #fbbf24;
+    --blue: #60a5fa;
+    --good: #34d399;
+    --bad: #f87171;
+    --radius: 18px;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    line-height: 1.65;
+    overflow-x: hidden;
+  }
+  #stars {
+    position: fixed; inset: 0; z-index: -1;
+  }
+  header {
+    min-height: 92vh;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    text-align: center; padding: 2rem;
+    position: relative;
+  }
+  header h1 {
+    font-size: clamp(2.2rem, 6vw, 4.2rem);
+    background: linear-gradient(90deg, var(--accent), var(--blue), var(--accent2));
+    -webkit-background-clip: text; background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 1rem;
+    letter-spacing: -1px;
+  }
+  header p.sub {
+    font-size: clamp(1rem, 2.5vw, 1.35rem);
+    color: var(--muted); max-width: 620px;
+  }
+  .hero-clock-row {
+    display: flex; gap: 3rem; margin-top: 2.5rem; flex-wrap: wrap; justify-content: center;
+  }
+  .hero-clock { text-align: center; }
+  .hero-clock canvas { filter: drop-shadow(0 0 18px rgba(94,234,212,.25)); }
+  .hero-clock span { display:block; margin-top:.5rem; color: var(--muted); font-size:.95rem; }
+  .scroll-hint {
+    position: absolute; bottom: 1.5rem; color: var(--muted);
+    animation: bounce 2s infinite; font-size: 1.6rem; text-decoration: none;
+  }
+  @keyframes bounce { 0%,100% {transform: translateY(0);} 50% {transform: translateY(10px);} }
+
+  nav {
+    position: sticky; top: 0; z-index: 50;
+    background: rgba(11,14,26,.85); backdrop-filter: blur(10px);
+    display: flex; justify-content: center; gap: .4rem;
+    padding: .6rem 1rem; flex-wrap: wrap;
+    border-bottom: 1px solid rgba(255,255,255,.07);
+  }
+  nav a {
+    color: var(--muted); text-decoration: none; font-size: .9rem;
+    padding: .35rem .85rem; border-radius: 999px; transition: all .2s;
+  }
+  nav a:hover, nav a.active { color: var(--text); background: var(--card2); }
+
+  main { max-width: 1060px; margin: 0 auto; padding: 0 1.2rem 6rem; }
+  section { margin-top: 5rem; scroll-margin-top: 70px; }
+  .kicker {
+    color: var(--accent); text-transform: uppercase; letter-spacing: 2.5px;
+    font-size: .8rem; font-weight: 700;
+  }
+  h2 { font-size: clamp(1.6rem, 4vw, 2.4rem); margin: .3rem 0 1rem; }
+  .lead { color: var(--muted); font-size: 1.08rem; max-width: 760px; }
+
+  .card {
+    background: var(--card); border-radius: var(--radius);
+    padding: 1.6rem; margin-top: 1.6rem;
+    border: 1px solid rgba(255,255,255,.06);
+    box-shadow: 0 10px 40px rgba(0,0,0,.35);
+  }
+  .formula {
+    background: var(--bg2); border-radius: 12px; padding: 1rem 1.4rem;
+    font-family: 'Cambria Math', Georgia, serif; font-size: 1.35rem;
+    display: inline-block; margin: .8rem 0;
+    border-left: 4px solid var(--accent);
+  }
+  .formula .frac { display: inline-flex; flex-direction: column; vertical-align: middle; text-align: center; margin: 0 .25rem; }
+  .formula .frac > span { padding: 0 .4rem; }
+  .formula .frac > span:first-child { border-bottom: 1.6px solid var(--text); }
+  .formula sup { font-size: .7em; }
+  .formula .sqrt { border-top: 1.6px solid var(--text); padding: 0 .3rem; margin-left: .15rem; }
+  .hl-a { color: var(--accent); } .hl-p { color: var(--accent2); } .hl-y { color: var(--accent3); } .hl-b { color: var(--blue); }
+
+  .controls {
+    display: flex; flex-wrap: wrap; gap: 1.2rem; align-items: center;
+    margin-top: 1rem; padding: .9rem 1.1rem;
+    background: var(--bg2); border-radius: 12px;
+  }
+  .controls label { font-size: .9rem; color: var(--muted); white-space: nowrap; }
+  input[type=range] {
+    -webkit-appearance: none; appearance: none;
+    width: 220px; height: 6px; border-radius: 3px;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    outline: none; cursor: pointer;
+  }
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none; appearance: none;
+    width: 20px; height: 20px; border-radius: 50%;
+    background: #fff; border: 3px solid var(--accent);
+    box-shadow: 0 0 12px rgba(94,234,212,.7); cursor: grab;
+  }
+  input[type=range]::-moz-range-thumb {
+    width: 16px; height: 16px; border-radius: 50%;
+    background: #fff; border: 3px solid var(--accent);
+    box-shadow: 0 0 12px rgba(94,234,212,.7); cursor: grab;
+  }
+  button.btn {
+    background: linear-gradient(90deg, var(--accent), var(--blue));
+    border: none; color: #06281f; font-weight: 700;
+    padding: .55rem 1.3rem; border-radius: 999px; cursor: pointer;
+    font-size: .95rem; transition: transform .15s, box-shadow .15s;
+  }
+  button.btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(94,234,212,.35); }
+  button.btn.secondary { background: var(--card2); color: var(--text); }
+  .readout {
+    font-variant-numeric: tabular-nums; font-weight: 700;
+    color: var(--accent3); font-size: 1.05rem;
+  }
+  canvas.sim { width: 100%; height: auto; display: block; border-radius: 12px; background: var(--bg2); touch-action: none; }
+
+  .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; margin-top: 1.2rem; }
+  .stat {
+    background: var(--bg2); border-radius: 12px; padding: .9rem 1.1rem; text-align: center;
+  }
+  .stat .label { font-size: .78rem; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
+  .stat .value { font-size: 1.5rem; font-weight: 800; font-variant-numeric: tabular-nums; margin-top: .2rem; }
+
+  .infobox {
+    border-left: 4px solid var(--accent3);
+    background: rgba(251,191,36,.07);
+    padding: 1rem 1.3rem; border-radius: 0 12px 12px 0; margin-top: 1.2rem;
+  }
+  .infobox b:first-child { color: var(--accent3); }
+  .think {
+    border-left: 4px solid var(--accent2);
+    background: rgba(244,114,182,.07);
+    padding: 1rem 1.3rem; border-radius: 0 12px 12px 0; margin-top: 1.2rem;
+  }
+  .think b:first-child { color: var(--accent2); }
+  details.solution { margin-top: .6rem; }
+  details.solution summary { cursor: pointer; color: var(--accent); font-weight: 600; }
+  details.solution p { margin-top: .5rem; color: var(--muted); }
+
+  /* Quiz */
+  .quiz-q { margin-top: 1.4rem; }
+  .quiz-q p.q { font-weight: 700; font-size: 1.05rem; }
+  .quiz-options { display: grid; gap: .6rem; margin-top: .7rem; }
+  .quiz-options button {
+    text-align: left; background: var(--bg2); color: var(--text);
+    border: 1px solid rgba(255,255,255,.1); border-radius: 10px;
+    padding: .7rem 1rem; cursor: pointer; font-size: .98rem; transition: all .15s;
+  }
+  .quiz-options button:hover:not(:disabled) { border-color: var(--accent); transform: translateX(4px); }
+  .quiz-options button.correct { background: rgba(52,211,153,.18); border-color: var(--good); }
+  .quiz-options button.wrong { background: rgba(248,113,113,.15); border-color: var(--bad); }
+  .quiz-feedback { margin-top: .6rem; font-size: .95rem; color: var(--muted); display: none; }
+  .quiz-feedback.show { display: block; }
+  #quizScore { margin-top: 1.5rem; font-size: 1.15rem; font-weight: 700; display: none; }
+
+  footer {
+    text-align: center; color: var(--muted); padding: 2.5rem 1rem;
+    border-top: 1px solid rgba(255,255,255,.07); font-size: .9rem;
+  }
+  .preset-row { display: flex; gap: .5rem; flex-wrap: wrap; }
+  .preset-row button {
+    background: var(--card2); color: var(--text); border: 1px solid rgba(255,255,255,.12);
+    border-radius: 999px; padding: .35rem .9rem; cursor: pointer; font-size: .85rem;
+  }
+  .preset-row button.active { background: var(--accent); color: #06281f; font-weight: 700; border-color: var(--accent); }
+  @media (max-width: 640px) {
+    input[type=range] { width: 150px; }
+    .hero-clock-row { gap: 1.5rem; }
+  }
+</style>
+</head>
+<body>
+<canvas id="stars"></canvas>
+
+<header id="top">
+  <h1>Eigenzeit &amp; Zeitdilatation</h1>
+  <p class="sub">Warum bewegte Uhren langsamer ticken – eine interaktive Reise durch Einsteins Spezielle Relativitätstheorie. 🚀</p>
+  <div class="hero-clock-row">
+    <div class="hero-clock"><canvas id="heroClockA" width="140" height="140"></canvas><span>Du (in Ruhe)</span></div>
+    <div class="hero-clock"><canvas id="heroClockB" width="140" height="140"></canvas><span>Astronautin bei 87&nbsp;% Lichtgeschwindigkeit</span></div>
+  </div>
+  <a class="scroll-hint" href="#intro">▼</a>
+</header>
+
+<nav id="navbar">
+  <a href="#intro">Grundidee</a>
+  <a href="#lichtuhr">Lichtuhr</a>
+  <a href="#gamma">γ-Faktor</a>
+  <a href="#reise">Sternenreise</a>
+  <a href="#myonen">Myonen</a>
+  <a href="#quiz">Quiz</a>
+</nav>
+
+<main>
+
+<!-- ============ INTRO ============ -->
+<section id="intro">
+  <span class="kicker">Kapitel 1 · Grundidee</span>
+  <h2>Zeit ist nicht für alle gleich</h2>
+  <p class="lead">
+    Im Alltag erscheint uns Zeit absolut: Eine Sekunde ist eine Sekunde – egal, ob man im Bus sitzt
+    oder am Bahnsteig steht. Albert Einstein zeigte 1905: Das stimmt nicht ganz.
+    <b>Bewegte Uhren gehen langsamer</b> – man muss nur sehr, sehr schnell sein, um es zu merken.
+  </p>
+  <div class="card">
+    <p>Zwei Begriffe sind dabei zentral:</p>
+    <p style="margin-top:.8rem">
+      ⏱️ <b class="hl-a">Eigenzeit (τ, „tau“)</b> – die Zeit, die eine Uhr misst, die <b>direkt am Ort des Geschehens</b> dabei ist.
+      Beispiel: die Armbanduhr einer Astronautin misst <i>ihre</i> Eigenzeit.
+    </p>
+    <p style="margin-top:.8rem">
+      🌍 <b class="hl-p">Koordinatenzeit (t)</b> – die Zeit, die ein <b>außenstehender Beobachter</b> für denselben Vorgang misst,
+      z.&nbsp;B. wir auf der Erde, während das Raumschiff vorbeifliegt.
+    </p>
+    <p style="margin-top:.8rem">
+      Die <b class="hl-y">Zeitdilatation</b> (lat. <i>dilatare</i> = ausdehnen) besagt:
+      Von außen betrachtet vergeht die Zeit im bewegten System <b>gedehnt</b>, also langsamer.
+      Die Eigenzeit ist immer die <b>kürzeste</b> gemessene Zeit.
+    </p>
+  </div>
+  <div class="infobox">
+    <b>Einsteins Ausgangspunkt:</b> Licht ist stur. Die Lichtgeschwindigkeit
+    <b>c ≈ 300&thinsp;000 km/s</b> ist in jedem Bezugssystem exakt gleich groß – egal, wie schnell sich
+    die Lichtquelle oder der Beobachter bewegt. Aus diesem einen Prinzip folgt alles Weitere.
+    Probiere es im nächsten Kapitel selbst aus!
+  </div>
+</section>
+
+<!-- ============ LICHTUHR ============ -->
+<section id="lichtuhr">
+  <span class="kicker">Kapitel 2 · Das Gedankenexperiment</span>
+  <h2>Die Lichtuhr 💡</h2>
+  <p class="lead">
+    Eine Lichtuhr ist die einfachste Uhr der Welt: Ein Lichtblitz springt zwischen zwei Spiegeln
+    hin und her. Jedes „Hin und zurück“ ist ein <b>Tick</b>.
+    Links steht die Uhr still – rechts fliegt sie an dir vorbei.
+    Beobachte den Weg des Lichts!
+  </p>
+  <div class="card">
+    <div class="controls">
+      <label>Geschwindigkeit der bewegten Uhr:&nbsp;
+        <span class="readout" id="lcSpeedLabel">v = 0,60 c</span></label>
+      <input type="range" id="lcSpeed" min="0" max="0.95" step="0.01" value="0.6">
+      <button class="btn" id="lcPlay">⏸ Pause</button>
+      <button class="btn secondary" id="lcReset">↺ Zurücksetzen</button>
+    </div>
+    <canvas class="sim" id="lcCanvas" width="1000" height="480"></canvas>
+    <div class="stat-grid">
+      <div class="stat"><div class="label">Ticks – ruhende Uhr</div><div class="value hl-a" id="lcTicksRest">0</div></div>
+      <div class="stat"><div class="label">Ticks – bewegte Uhr</div><div class="value hl-p" id="lcTicksMove">0</div></div>
+      <div class="stat"><div class="label">Verhältnis (γ)</div><div class="value hl-y" id="lcGamma">1,25</div></div>
+    </div>
+    <div class="think">
+      <b>Denk mit:</b> In der bewegten Uhr legt das Licht eine <b>Zickzack-Strecke</b> zurück – sie ist
+      länger als das einfache Auf und Ab. Da Licht aber <i>immer</i> mit derselben Geschwindigkeit c
+      unterwegs ist, <b>braucht es für den längeren Weg mehr Zeit</b>. Die bewegte Uhr tickt für uns
+      langsamer. Genau das ist Zeitdilatation – kein Messfehler, sondern eine Eigenschaft der Zeit selbst!
+      <details class="solution">
+        <summary>Und aus Sicht der Astronautin in der bewegten Uhr?</summary>
+        <p>Für sie ruht ihre Uhr – das Licht geht senkrecht auf und ab, alles ist normal.
+        Bewegung ist relativ: <i>Sie</i> würde sagen, dass <i>unsere</i> Uhr langsamer geht.
+        Beide haben recht – jeweils in ihrem eigenen Bezugssystem.</p>
+      </details>
+    </div>
+  </div>
+</section>
+
+<!-- ============ GAMMA ============ -->
+<section id="gamma">
+  <span class="kicker">Kapitel 3 · Die Formel</span>
+  <h2>Der Lorentz-Faktor γ</h2>
+  <p class="lead">
+    Aus der Geometrie der Lichtuhr (Satz des Pythagoras!) folgt die berühmte Formel der Zeitdilatation:
+  </p>
+  <div class="card">
+    <div class="formula">
+      <span class="hl-p">t</span> = <span class="hl-y">γ</span> · <span class="hl-a">τ</span>
+      &nbsp;&nbsp;mit&nbsp;&nbsp;
+      <span class="hl-y">γ</span> =
+      <span class="frac"><span>1</span><span>√<span class="sqrt">1 − v²/c²</span></span></span>
+    </div>
+    <p style="color:var(--muted); font-size:.95rem;">
+      <span class="hl-a">τ = Eigenzeit</span> (mitbewegte Uhr) ·
+      <span class="hl-p">t = gedehnte Zeit</span> (außenstehender Beobachter) ·
+      <span class="hl-y">γ ≥ 1</span> („Gamma-Faktor“)
+    </p>
+    <p style="margin-top:1rem">Ziehe den Punkt auf der Kurve und beobachte, wie γ von der Geschwindigkeit abhängt:</p>
+    <canvas class="sim" id="gammaCanvas" width="1000" height="460" style="margin-top:1rem"></canvas>
+    <div class="stat-grid">
+      <div class="stat"><div class="label">Geschwindigkeit</div><div class="value hl-b" id="gmV">0,600 c</div></div>
+      <div class="stat"><div class="label">γ-Faktor</div><div class="value hl-y" id="gmG">1,250</div></div>
+      <div class="stat"><div class="label">1 s Eigenzeit erscheint als</div><div class="value hl-p" id="gmT">1,250 s</div></div>
+      <div class="stat"><div class="label">Beispiel</div><div class="value" id="gmEx" style="font-size:1rem">🚄 —</div></div>
+    </div>
+    <div class="infobox">
+      <b>Beobachtung:</b> Bis etwa 0,1&thinsp;c ist γ praktisch 1 – deshalb merken wir im Alltag nichts von
+      der Zeitdilatation. Erst nahe der Lichtgeschwindigkeit „explodiert“ die Kurve.
+      Bei v = c würde γ unendlich – darum kann nichts mit Masse die Lichtgeschwindigkeit erreichen.
+    </div>
+  </div>
+</section>
+
+<!-- ============ REISE ============ -->
+<section id="reise">
+  <span class="kicker">Kapitel 4 · Simulator</span>
+  <h2>Die Sternenreise 🚀 (Zwillings-Szenario)</h2>
+  <p class="lead">
+    Lena startet zu einem fernen Stern, ihr Zwillingsbruder Ben bleibt auf der Erde.
+    Wähle Ziel und Geschwindigkeit, starte die Reise – und vergleiche die Uhren und das Alter
+    der beiden bei Lenas Ankunft!
+  </p>
+  <div class="card">
+    <div class="controls" style="justify-content:space-between">
+      <div class="preset-row" id="starPresets">
+        <button data-d="4.25" data-name="Proxima Centauri" class="active">Proxima Centauri · 4,25 Lj</button>
+        <button data-d="8.6" data-name="Sirius">Sirius · 8,6 Lj</button>
+        <button data-d="25" data-name="Wega">Wega · 25 Lj</button>
+        <button data-d="640" data-name="Beteigeuze">Beteigeuze · 640 Lj</button>
+      </div>
+    </div>
+    <div class="controls">
+      <label>Reisegeschwindigkeit:&nbsp;<span class="readout" id="trSpeedLabel">v = 0,80 c</span></label>
+      <input type="range" id="trSpeed" min="0.1" max="0.999" step="0.001" value="0.8">
+      <button class="btn" id="trStart">🚀 Reise starten</button>
+      <button class="btn secondary" id="trReset">↺ Neu</button>
+    </div>
+    <canvas class="sim" id="tripCanvas" width="1000" height="430"></canvas>
+    <div class="stat-grid">
+      <div class="stat"><div class="label">🌍 Ben (Erde) ist gealtert um</div><div class="value hl-p" id="trEarth">0,0 Jahre</div></div>
+      <div class="stat"><div class="label">🚀 Lena (Schiff) ist gealtert um</div><div class="value hl-a" id="trShip">0,0 Jahre</div></div>
+      <div class="stat"><div class="label">Gewonnene Zeit</div><div class="value hl-y" id="trDiff">0,0 Jahre</div></div>
+      <div class="stat"><div class="label">γ-Faktor</div><div class="value" id="trGamma">1,67</div></div>
+    </div>
+    <div class="think">
+      <b>Denk mit:</b> Lenas Borduhr misst die <b class="hl-a">Eigenzeit τ</b> der Reise – sie ist bei der Reise
+      immer dabei. Bens Uhr misst die <b class="hl-p">Koordinatenzeit t = Entfernung / v</b>.
+      Es gilt τ = t / γ.
+      <details class="solution">
+        <summary>Rechenbeispiel zum Nachprüfen</summary>
+        <p>Proxima Centauri, v = 0,8&thinsp;c: &nbsp;t = 4,25 Lj / 0,8 c ≈ 5,3 Jahre (Erde). &nbsp;
+        γ = 1/√(1−0,64) ≈ 1,667. &nbsp; τ = 5,3 / 1,667 ≈ <b>3,2 Jahre</b> (Bordzeit).
+        Lena ist bei der Ankunft also gut 2 Jahre weniger gealtert als Ben!</p>
+      </details>
+      <details class="solution">
+        <summary>„Aber Bewegung ist doch relativ – warum altert dann Lena weniger?“ (Zwillingsparadoxon)</summary>
+        <p>Gute Frage! Solange beide gleichförmig unterwegs sind, ist die Lage symmetrisch.
+        Aber um zurückzukommen, muss Lena <b>abbremsen und umkehren</b> – sie wechselt das Bezugssystem
+        und spürt dabei Beschleunigungen. Diese Asymmetrie löst das Paradoxon: Bei einem Wiedersehen
+        ist tatsächlich Lena die Jüngere.</p>
+      </details>
+    </div>
+  </div>
+</section>
+
+<!-- ============ MYONEN ============ -->
+<section id="myonen">
+  <span class="kicker">Kapitel 5 · Der Beweis aus der Natur</span>
+  <h2>Myonen – Teilchen, die es nicht geben dürfte 🌧️</h2>
+  <p class="lead">
+    Kosmische Strahlung erzeugt in ca. <b>10 km</b> Höhe ständig <b>Myonen</b> – instabile Teilchen mit einer
+    mittleren Lebensdauer von nur <b>2,2 µs</b> (Eigenzeit!). Selbst mit fast Lichtgeschwindigkeit
+    kämen sie damit im Mittel nur etwa <b>660 m</b> weit. Trotzdem messen wir sie massenhaft am Erdboden.
+    Wie kann das sein?
+  </p>
+  <div class="card">
+    <div class="controls">
+      <label><input type="checkbox" id="muRel" checked> &nbsp;Zeitdilatation aktiv (Realität)</label>
+      <label style="margin-left:1rem">v = <span class="readout" id="muVLabel">0,998 c</span></label>
+      <input type="range" id="muV" min="0.9" max="0.999" step="0.001" value="0.998">
+      <button class="btn" id="muStart">🌧️ Myonen-Schauer starten</button>
+    </div>
+    <canvas class="sim" id="muCanvas" width="1000" height="520"></canvas>
+    <div class="stat-grid">
+      <div class="stat"><div class="label">gestartete Myonen</div><div class="value" id="muTotal">0</div></div>
+      <div class="stat"><div class="label">am Boden angekommen</div><div class="value hl-a" id="muSurvived">0</div></div>
+      <div class="stat"><div class="label">Überlebensquote</div><div class="value hl-y" id="muRate">–</div></div>
+      <div class="stat"><div class="label">γ-Faktor</div><div class="value" id="muGamma">15,8</div></div>
+    </div>
+    <div class="infobox">
+      <b>Erklärung:</b> Die 2,2 µs sind die <b class="hl-a">Eigenzeit</b> des Myons. Aus unserer Sicht ist
+      seine innere Uhr um den Faktor γ ≈ 16 gedehnt – es „lebt“ für uns rund 35 µs und schafft so die
+      10 km locker. Schalte die Zeitdilatation testweise aus und vergleiche!
+      <details class="solution">
+        <summary>Bonus: Wie erklärt es das Myon selbst?</summary>
+        <p>Im Bezugssystem des Myons tickt seine Uhr ganz normal – dafür ist die Atmosphäre wegen der
+        <b>Längenkontraktion</b> auf etwa 10 km / γ ≈ 630 m geschrumpft. Beide Sichtweisen führen zum
+        gleichen Ergebnis: Das Myon erreicht den Boden. Die Relativitätstheorie ist in sich konsistent.</p>
+      </details>
+    </div>
+  </div>
+</section>
+
+<!-- ============ QUIZ ============ -->
+<section id="quiz">
+  <span class="kicker">Kapitel 6 · Teste dich</span>
+  <h2>Quiz 🧠</h2>
+  <p class="lead">Fünf Fragen – schaffst du alle beim ersten Versuch?</p>
+  <div class="card" id="quizCard"></div>
+</section>
+
+</main>
+
+<footer>
+  Interaktive Lerneinheit · Spezielle Relativitätstheorie · Physik EF<br>
+  Alle Simulationen laufen lokal im Browser – experimentiere, so viel du willst! ✨
+</footer>
+
+<script>
+"use strict";
+
+/* ---------- Hilfen ---------- */
+const $ = id => document.getElementById(id);
+const gamma = b => 1 / Math.sqrt(1 - b * b);
+const fmt = (x, d = 2) => x.toLocaleString("de-DE", { minimumFractionDigits: d, maximumFractionDigits: d });
+
+/* ---------- Sternenhimmel ---------- */
+(() => {
+  const cv = $("stars"), ctx = cv.getContext("2d");
+  let stars = [];
+  function resize() {
+    cv.width = innerWidth; cv.height = innerHeight;
+    stars = Array.from({ length: Math.min(220, innerWidth / 6) }, () => ({
+      x: Math.random() * cv.width, y: Math.random() * cv.height,
+      r: Math.random() * 1.4 + .3, p: Math.random() * Math.PI * 2,
+      s: .4 + Math.random() * 1.2
+    }));
+  }
+  addEventListener("resize", resize); resize();
+  (function loop(t) {
+    ctx.clearRect(0, 0, cv.width, cv.height);
+    for (const s of stars) {
+      const a = .35 + .45 * Math.sin(t / 900 * s.s + s.p);
+      ctx.fillStyle = `rgba(232,236,255,${a})`;
+      ctx.beginPath(); ctx.arc(s.x, s.y, s.r, 0, 7); ctx.fill();
+    }
+    requestAnimationFrame(loop);
+  })(0);
+})();
+
+/* ---------- Analoge Uhr zeichnen ---------- */
+function drawClock(ctx, cx, cy, r, seconds, color) {
+  ctx.save();
+  ctx.beginPath(); ctx.arc(cx, cy, r, 0, 7);
+  ctx.fillStyle = "#121833"; ctx.fill();
+  ctx.lineWidth = r * .06; ctx.strokeStyle = color; ctx.stroke();
+  for (let i = 0; i < 12; i++) {
+    const a = i / 12 * Math.PI * 2;
+    ctx.beginPath();
+    ctx.moveTo(cx + Math.cos(a) * r * .82, cy + Math.sin(a) * r * .82);
+    ctx.lineTo(cx + Math.cos(a) * r * .92, cy + Math.sin(a) * r * .92);
+    ctx.lineWidth = 2; ctx.strokeStyle = "rgba(232,236,255,.5)"; ctx.stroke();
+  }
+  const a = seconds / 60 * Math.PI * 2 - Math.PI / 2;
+  ctx.beginPath(); ctx.moveTo(cx, cy);
+  ctx.lineTo(cx + Math.cos(a) * r * .72, cy + Math.sin(a) * r * .72);
+  ctx.lineWidth = 3; ctx.lineCap = "round"; ctx.strokeStyle = color; ctx.stroke();
+  const a2 = seconds / 720 * Math.PI * 2 - Math.PI / 2;
+  ctx.beginPath(); ctx.moveTo(cx, cy);
+  ctx.lineTo(cx + Math.cos(a2) * r * .45, cy + Math.sin(a2) * r * .45);
+  ctx.lineWidth = 4; ctx.strokeStyle = "rgba(232,236,255,.85)"; ctx.stroke();
+  ctx.beginPath(); ctx.arc(cx, cy, r * .07, 0, 7); ctx.fillStyle = color; ctx.fill();
+  ctx.restore();
+}
+
+/* ---------- Hero-Uhren ---------- */
+(() => {
+  const a = $("heroClockA").getContext("2d");
+  const b = $("heroClockB").getContext("2d");
+  const g = gamma(0.87); // ≈ 2
+  let t0 = performance.now();
+  (function loop(now) {
+    const t = (now - t0) / 1000;
+    a.clearRect(0, 0, 140, 140); b.clearRect(0, 0, 140, 140);
+    drawClock(a, 70, 70, 62, t * 6, "#5eead4");
+    drawClock(b, 70, 70, 62, t * 6 / g, "#f472b6");
+    requestAnimationFrame(loop);
+  })(t0);
+})();
+
+/* ============================================================
+   LICHTUHR
+============================================================ */
+(() => {
+  const cv = $("lcCanvas"), ctx = cv.getContext("2d");
+  const W = cv.width, H = cv.height;
+  let beta = 0.6, playing = true;
+  let tau = 0;            // Eigenzeit-Phase der ruhenden Uhr (in Ticks)
+  let shipX = 0;          // Position der bewegten Uhr
+  let trail = [];         // Lichtspur der bewegten Uhr
+  let last = null;
+
+  const mirrorH = 250, topY = 90, botY = topY + mirrorH;
+  const restX = 170;
+  const TICK_SPEED = 0.35; // Ticks pro Sekunde Realzeit (ruhende Uhr)
+
+  $("lcSpeed").addEventListener("input", e => {
+    beta = +e.target.value;
+    $("lcSpeedLabel").textContent = "v = " + fmt(beta, 2).replace(".", ",") + " c";
+    $("lcGamma").textContent = fmt(gamma(beta), 2);
+    trail = [];
+  });
+  $("lcPlay").addEventListener("click", () => {
+    playing = !playing;
+    $("lcPlay").textContent = playing ? "⏸ Pause" : "▶ Weiter";
+  });
+  $("lcReset").addEventListener("click", () => { tau = 0; shipX = 0; trail = []; });
+
+  function drawMirrors(x, color) {
+    ctx.fillStyle = color;
+    ctx.fillRect(x - 45, topY - 10, 90, 8);
+    ctx.fillRect(x - 45, botY + 2, 90, 8);
+  }
+
+  function loop(now) {
+    if (last === null) last = now;
+    const dt = Math.min((now - last) / 1000, .05); last = now;
+    if (playing) {
+      tau += dt * TICK_SPEED;
+      shipX += dt * TICK_SPEED * beta * mirrorH * 2; // c entspricht 2*mirrorH pro Tick
+    }
+    const g = gamma(beta);
+    const movX0 = 420, movW = W - movX0 - 80;
+    const sx = movX0 + (shipX % movW);
+
+    // Phase des Lichtblitzes: ruhend = tau, bewegt = tau/γ
+    const phaseR = tau % 1, phaseM = (tau / g) % 1;
+    const yR = phaseR < .5 ? topY + phaseR * 2 * mirrorH : botY - (phaseR - .5) * 2 * mirrorH;
+    const yM = phaseM < .5 ? topY + phaseM * 2 * mirrorH : botY - (phaseM - .5) * 2 * mirrorH;
+
+    ctx.clearRect(0, 0, W, H);
+
+    // Trennlinie + Labels
+    ctx.strokeStyle = "rgba(255,255,255,.08)";
+    ctx.beginPath(); ctx.moveTo(340, 30); ctx.lineTo(340, H - 30); ctx.stroke();
+    ctx.font = "600 16px Segoe UI, sans-serif";
+    ctx.fillStyle = "#5eead4"; ctx.fillText("Ruhende Lichtuhr", 100, 45);
+    ctx.fillStyle = "#f472b6"; ctx.fillText("Bewegte Lichtuhr  →  v = " + fmt(beta, 2).replace(".", ",") + " c", movX0, 45);
+
+    // Ruhende Uhr
+    drawMirrors(restX, "#5eead4");
+    ctx.strokeStyle = "rgba(94,234,212,.25)"; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(restX, topY); ctx.lineTo(restX, botY); ctx.stroke();
+    ctx.beginPath(); ctx.arc(restX, yR, 8, 0, 7);
+    ctx.fillStyle = "#fff"; ctx.shadowColor = "#5eead4"; ctx.shadowBlur = 18; ctx.fill();
+    ctx.shadowBlur = 0;
+
+    // Bewegte Uhr: Spur aufzeichnen
+    if (playing) {
+      trail.push({ x: sx, y: yM });
+      if (trail.length > 400) trail.shift();
+    }
+    drawMirrors(sx, "#f472b6");
+    // Zickzack-Spur (bei Bildschirm-Wrap unterbrechen)
+    ctx.strokeStyle = "rgba(244,114,182,.55)"; ctx.lineWidth = 2;
+    ctx.beginPath();
+    for (let i = 0; i < trail.length; i++) {
+      if (i === 0 || trail[i].x < trail[i - 1].x) ctx.moveTo(trail[i].x, trail[i].y);
+      else ctx.lineTo(trail[i].x, trail[i].y);
+    }
+    ctx.stroke();
+    ctx.beginPath(); ctx.arc(sx, yM, 8, 0, 7);
+    ctx.fillStyle = "#fff"; ctx.shadowColor = "#f472b6"; ctx.shadowBlur = 18; ctx.fill();
+    ctx.shadowBlur = 0;
+
+    // Tick-Anzeigen
+    $("lcTicksRest").textContent = Math.floor(tau);
+    $("lcTicksMove").textContent = Math.floor(tau / g);
+
+    requestAnimationFrame(loop);
+  }
+  requestAnimationFrame(loop);
+})();
+
+/* ============================================================
+   GAMMA-KURVE (interaktiv, Punkt ziehbar)
+============================================================ */
+(() => {
+  const cv = $("gammaCanvas"), ctx = cv.getContext("2d");
+  const W = cv.width, H = cv.height;
+  const M = { l: 80, r: 30, t: 30, b: 60 };
+  const GMAX = 8;
+  let beta = 0.6, dragging = false;
+
+  const x2px = b => M.l + b * (W - M.l - M.r);
+  const y2px = g => H - M.b - (g - 1) / (GMAX - 1) * (H - M.t - M.b);
+
+  const examples = [
+    [0.00012, "🚄 ICE (300 km/h)"],
+    [0.000036, "✈️ Flugzeug"],
+    [0.0000257, "🛰️ ISS (7,7 km/s)"],
+    [0.1, "⚛️ schnelle Teilchen"],
+    [0.6, "🚀 Sci-Fi-Raumschiff"],
+    [0.87, "⏱ γ = 2: Zeit halbiert!"],
+    [0.998, "🌧️ Myonen"],
+    [0.99999999, "🔬 LHC-Protonen"]
+  ];
+  function nearestExample(b) {
+    let best = examples[0], bd = 1e9;
+    for (const e of examples) {
+      const d = Math.abs(Math.log10((b + 1e-9) / e[0]));
+      if (d < bd) { bd = d; best = e; }
+    }
+    return best[1];
+  }
+
+  function update() {
+    const g = gamma(beta);
+    $("gmV").textContent = fmt(beta, 3).replace(".", ",") + " c";
+    $("gmG").textContent = fmt(Math.min(g, 999), 3).replace(".", ",");
+    $("gmT").textContent = fmt(Math.min(g, 999), 3).replace(".", ",") + " s";
+    $("gmEx").textContent = nearestExample(beta);
+  }
+
+  function draw() {
+    ctx.clearRect(0, 0, W, H);
+    // Gitter
+    ctx.strokeStyle = "rgba(255,255,255,.07)"; ctx.lineWidth = 1;
+    ctx.font = "13px Segoe UI, sans-serif"; ctx.fillStyle = "#9aa3c7";
+    for (let g = 1; g <= GMAX; g++) {
+      ctx.beginPath(); ctx.moveTo(M.l, y2px(g)); ctx.lineTo(W - M.r, y2px(g)); ctx.stroke();
+      ctx.fillText("γ = " + g, 28, y2px(g) + 4);
+    }
+    for (let b = 0; b <= 1.001; b += .1) {
+      ctx.beginPath(); ctx.moveTo(x2px(b), M.t); ctx.lineTo(x2px(b), H - M.b); ctx.stroke();
+      ctx.fillText(fmt(b, 1).replace(".", ","), x2px(b) - 10, H - M.b + 22);
+    }
+    ctx.fillText("v in Vielfachen von c  →", W / 2 - 80, H - 14);
+
+    // Asymptote bei v = c
+    ctx.strokeStyle = "rgba(248,113,113,.6)"; ctx.setLineDash([6, 6]);
+    ctx.beginPath(); ctx.moveTo(x2px(1), M.t); ctx.lineTo(x2px(1), H - M.b); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle = "#f87171"; ctx.fillText("v = c: unerreichbar!", x2px(1) - 130, M.t + 16);
+
+    // Kurve
+    ctx.strokeStyle = "#fbbf24"; ctx.lineWidth = 3.5; ctx.beginPath();
+    let started = false;
+    for (let px = M.l; px <= W - M.r; px++) {
+      const b = (px - M.l) / (W - M.l - M.r);
+      const g = gamma(Math.min(b, .9999));
+      if (g > GMAX) break;
+      if (!started) { ctx.moveTo(px, y2px(g)); started = true; }
+      else ctx.lineTo(px, y2px(g));
+    }
+    ctx.stroke();
+
+    // Marker
+    const g = Math.min(gamma(beta), GMAX);
+    const mx = x2px(beta), my = y2px(g);
+    ctx.strokeStyle = "rgba(96,165,250,.5)"; ctx.setLineDash([4, 4]);
+    ctx.beginPath(); ctx.moveTo(mx, H - M.b); ctx.lineTo(mx, my); ctx.lineTo(M.l, my); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.beginPath(); ctx.arc(mx, my, 11, 0, 7);
+    ctx.fillStyle = "#fff"; ctx.shadowColor = "#60a5fa"; ctx.shadowBlur = 20; ctx.fill();
+    ctx.shadowBlur = 0;
+    ctx.strokeStyle = "#60a5fa"; ctx.lineWidth = 3; ctx.stroke();
+    ctx.fillStyle = "#9aa3c7"; ctx.fillText("⇠ zieh mich ⇢", mx - 42, my - 20);
+  }
+
+  function pointerBeta(e) {
+    const r = cv.getBoundingClientRect();
+    const px = (e.clientX - r.left) * (W / r.width);
+    return Math.max(0, Math.min(.999, (px - M.l) / (W - M.l - M.r)));
+  }
+  cv.addEventListener("pointerdown", e => { dragging = true; beta = pointerBeta(e); update(); draw(); });
+  addEventListener("pointermove", e => { if (dragging) { beta = pointerBeta(e); update(); draw(); } });
+  addEventListener("pointerup", () => dragging = false);
+
+  update(); draw();
+})();
+
+/* ============================================================
+   STERNENREISE
+============================================================ */
+(() => {
+  const cv = $("tripCanvas"), ctx = cv.getContext("2d");
+  const W = cv.width, H = cv.height;
+  let dist = 4.25, starName = "Proxima Centauri";
+  let beta = 0.8;
+  let prog = 0, running = false, last = null;
+  const DURATION = 7; // Sekunden Realzeit für die volle Reise
+
+  const presets = $("starPresets");
+  presets.addEventListener("click", e => {
+    const b = e.target.closest("button"); if (!b) return;
+    presets.querySelectorAll("button").forEach(x => x.classList.remove("active"));
+    b.classList.add("active");
+    dist = +b.dataset.d; starName = b.dataset.name;
+    prog = 0; running = false; update();
+  });
+  $("trSpeed").addEventListener("input", e => {
+    beta = +e.target.value;
+    $("trSpeedLabel").textContent = "v = " + fmt(beta, 3).replace(".", ",") + " c";
+    prog = 0; running = false; update();
+  });
+  $("trStart").addEventListener("click", () => { if (prog >= 1) prog = 0; running = true; last = null; });
+  $("trReset").addEventListener("click", () => { prog = 0; running = false; update(); });
+
+  function times() {
+    const g = gamma(beta);
+    const tEarth = dist / beta;       // Jahre
+    const tShip = tEarth / g;
+    return { g, tEarth, tShip };
+  }
+
+  function update() {
+    const { g, tEarth, tShip } = times();
+    $("trEarth").textContent = fmt(tEarth * prog, 1).replace(".", ",") + " Jahre";
+    $("trShip").textContent = fmt(tShip * prog, 1).replace(".", ",") + " Jahre";
+    $("trDiff").textContent = fmt((tEarth - tShip) * prog, 1).replace(".", ",") + " Jahre";
+    $("trGamma").textContent = fmt(g, 2).replace(".", ",");
+  }
+
+  function rocket(x, y, flame) {
+    ctx.save(); ctx.translate(x, y);
+    ctx.font = "34px serif";
+    if (flame) {
+      ctx.fillStyle = "rgba(251,191,36,.85)";
+      const f = 10 + Math.random() * 14;
+      ctx.beginPath();
+      ctx.moveTo(-14, 6); ctx.lineTo(-14 - f, 0); ctx.lineTo(-14, -6); ctx.fill();
+    }
+    ctx.fillText("🚀", -16, 12);
+    ctx.restore();
+  }
+
+  function draw(now) {
+    if (running) {
+      if (last === null) last = now;
+      prog = Math.min(1, prog + (now - last) / 1000 / DURATION);
+      last = now;
+      if (prog >= 1) running = false;
+      update();
+    }
+    const { g, tEarth, tShip } = times();
+
+    ctx.clearRect(0, 0, W, H);
+    const x0 = 90, x1 = W - 90, yLine = 150;
+
+    // Strecke
+    ctx.strokeStyle = "rgba(255,255,255,.18)"; ctx.lineWidth = 2;
+    ctx.setLineDash([2, 8]);
+    ctx.beginPath(); ctx.moveTo(x0, yLine); ctx.lineTo(x1, yLine); ctx.stroke();
+    ctx.setLineDash([]);
+
+    // Erde & Stern
+    ctx.font = "44px serif";
+    ctx.fillText("🌍", x0 - 26, yLine + 16);
+    ctx.fillText("⭐", x1 - 18, yLine + 16);
+    ctx.font = "14px Segoe UI, sans-serif"; ctx.fillStyle = "#9aa3c7";
+    ctx.fillText("Erde", x0 - 14, yLine + 44);
+    ctx.fillText(starName + " · " + fmt(dist, dist < 100 ? 2 : 0).replace(".", ",") + " Lichtjahre", x1 - 150, yLine + 44);
+
+    // Rakete
+    const rx = x0 + 30 + (x1 - x0 - 70) * prog;
+    rocket(rx, yLine - 26, running);
+
+    // Fortschritt
+    ctx.strokeStyle = "#5eead4"; ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.moveTo(x0, yLine); ctx.lineTo(x0 + (x1 - x0) * prog, yLine); ctx.stroke();
+
+    // Uhren
+    drawClock(ctx, W * .32, 310, 72, tEarth * prog * 6, "#f472b6");
+    drawClock(ctx, W * .68, 310, 72, tShip * prog * 6, "#5eead4");
+    ctx.font = "600 15px Segoe UI, sans-serif";
+    ctx.fillStyle = "#f472b6"; ctx.fillText("🌍 Bens Uhr (Erde)", W * .32 - 70, 408);
+    ctx.fillStyle = "#5eead4"; ctx.fillText("🚀 Lenas Borduhr (Eigenzeit)", W * .68 - 100, 408);
+
+    if (prog >= 1) {
+      ctx.fillStyle = "#fbbf24"; ctx.font = "700 20px Segoe UI, sans-serif";
+      const msg = "Ankunft! Lena ist " + fmt(tEarth - tShip, 1).replace(".", ",") + " Jahre weniger gealtert als Ben.";
+      ctx.fillText(msg, W / 2 - ctx.measureText(msg).width / 2, 70);
+    }
+    requestAnimationFrame(draw);
+  }
+  update();
+  requestAnimationFrame(draw);
+})();
+
+/* ============================================================
+   MYONEN
+============================================================ */
+(() => {
+  const cv = $("muCanvas"), ctx = cv.getContext("2d");
+  const W = cv.width, H = cv.height;
+  const skyTop = 60, ground = H - 50;
+  const ATMOS_KM = 10, TAU_US = 2.2;
+  let muons = [], total = 0, survived = 0;
+  let beta = 0.998, rel = true, last = null;
+
+  $("muV").addEventListener("input", e => {
+    beta = +e.target.value;
+    $("muVLabel").textContent = fmt(beta, 3).replace(".", ",") + " c";
+    $("muGamma").textContent = fmt(gamma(beta), 1).replace(".", ",");
+  });
+  $("muRel").addEventListener("change", e => rel = e.target.checked);
+  $("muStart").addEventListener("click", () => {
+    for (let i = 0; i < 40; i++) {
+      muons.push({
+        x: 60 + Math.random() * (W - 120),
+        frac: 0,                                  // zurückgelegter Anteil der 10 km
+        // Exponentialverteilte Lebensdauer (Eigenzeit, µs):
+        life: -TAU_US * Math.log(Math.random()),
+        dead: false, done: false, flash: 0,
+        delay: Math.random() * 1.2
+      });
+    }
+    total += 40;
+  });
+
+  function loop(now) {
+    if (last === null) last = now;
+    const dt = Math.min((now - last) / 1000, .05); last = now;
+    const g = gamma(beta);
+    // Realzeit -> Mikrosekunden Simulation: 10 km bei ~c dauern ~33.4 µs; wir spielen das in ~4 s ab.
+    const usPerSec = 9;
+
+    ctx.clearRect(0, 0, W, H);
+    // Atmosphäre
+    const grad = ctx.createLinearGradient(0, skyTop, 0, ground);
+    grad.addColorStop(0, "rgba(96,165,250,.16)");
+    grad.addColorStop(1, "rgba(96,165,250,.02)");
+    ctx.fillStyle = grad; ctx.fillRect(0, skyTop, W, ground - skyTop);
+    ctx.strokeStyle = "rgba(255,255,255,.15)";
+    ctx.beginPath(); ctx.moveTo(0, skyTop); ctx.lineTo(W, skyTop); ctx.stroke();
+    ctx.fillStyle = "#9aa3c7"; ctx.font = "13px Segoe UI, sans-serif";
+    ctx.fillText("☁️ Entstehung in 10 km Höhe (kosmische Strahlung)", 16, skyTop - 14);
+    // Boden
+    ctx.fillStyle = "#1f2850"; ctx.fillRect(0, ground, W, H - ground);
+    ctx.fillStyle = "#9aa3c7";
+    ctx.fillText("🏔️ Erdboden – Detektor", 16, ground + 30);
+
+    for (const m of muons) {
+      if (m.done) {
+        if (m.flash > 0) {
+          m.flash -= dt;
+          ctx.beginPath(); ctx.arc(m.x, ground, 14 * (1 - m.flash), 0, 7);
+          ctx.strokeStyle = `rgba(52,211,153,${m.flash})`; ctx.lineWidth = 2; ctx.stroke();
+        }
+        continue;
+      }
+      if (m.delay > 0) { m.delay -= dt; continue; }
+
+      const dUs = dt * usPerSec;                  // vergangene µs (Erdzeit)
+      const properUs = rel ? dUs / g : dUs;       // Eigenzeit des Myons
+      m.life -= properUs;
+      // Strecke: v * dt; volle Strecke = 10 km; Zeit (Erde) = 10 km / (beta*c) = 33.36/beta µs
+      m.frac += dUs / (33.36 / beta);
+
+      if (m.life <= 0) { m.dead = true; m.done = true; continue; }
+      if (m.frac >= 1) {
+        m.frac = 1; m.done = true; m.flash = 1; survived++;
+        continue;
+      }
+      const y = skyTop + m.frac * (ground - skyTop);
+      ctx.strokeStyle = "rgba(244,114,182,.35)"; ctx.lineWidth = 1.5;
+      ctx.beginPath(); ctx.moveTo(m.x, Math.max(skyTop, y - 26)); ctx.lineTo(m.x, y); ctx.stroke();
+      ctx.beginPath(); ctx.arc(m.x, y, 4.5, 0, 7);
+      ctx.fillStyle = "#f472b6"; ctx.shadowColor = "#f472b6"; ctx.shadowBlur = 10; ctx.fill();
+      ctx.shadowBlur = 0;
+    }
+    // Zerfallene markieren (kurz aufblitzen lassen wäre komplexer; wir zählen nur)
+    muons = muons.filter(m => !m.done || m.flash > 0 || !m.dead);
+
+    $("muTotal").textContent = total;
+    $("muSurvived").textContent = survived;
+    $("muRate").textContent = total ? fmt(survived / total * 100, 0) + " %" : "–";
+
+    requestAnimationFrame(loop);
+  }
+  requestAnimationFrame(loop);
+})();
+
+/* ============================================================
+   QUIZ
+============================================================ */
+(() => {
+  const questions = [
+    {
+      q: "Was versteht man unter der Eigenzeit τ?",
+      opts: [
+        "Die Zeit, die eine mitbewegte Uhr direkt am Ort des Geschehens misst.",
+        "Die Zeit, die ein ruhender Beobachter von außen misst.",
+        "Die Zeit, die nur für Lichtteilchen gilt.",
+        "Eine veraltete Einheit für Sekunden."
+      ],
+      a: 0,
+      fb: "Richtig: Die Eigenzeit ist die Zeit im mitbewegten System – sie ist immer die kürzeste gemessene Zeitspanne."
+    },
+    {
+      q: "Eine Uhr fliegt mit v = 0,87 c an dir vorbei (γ ≈ 2). Was beobachtest du?",
+      opts: [
+        "Die bewegte Uhr tickt halb so schnell wie deine.",
+        "Die bewegte Uhr tickt doppelt so schnell.",
+        "Beide Uhren ticken exakt gleich.",
+        "Die bewegte Uhr bleibt stehen."
+      ],
+      a: 0,
+      fb: "Genau! t = γ·τ: Was auf der bewegten Uhr 1 s dauert, dauert für dich 2 s – sie tickt also halb so schnell."
+    },
+    {
+      q: "Warum erreichen Myonen den Erdboden, obwohl ihre Lebensdauer nur 2,2 µs beträgt?",
+      opts: [
+        "Aus unserer Sicht ist ihre innere Uhr um den Faktor γ gedehnt – sie leben für uns länger.",
+        "Sie fliegen schneller als das Licht.",
+        "Die Atmosphäre beschleunigt sie zusätzlich.",
+        "Es kommen gar keine Myonen am Boden an."
+      ],
+      a: 0,
+      fb: "Korrekt! Bei v ≈ 0,998 c ist γ ≈ 16 – aus 2,2 µs Eigenzeit werden für uns ca. 35 µs. Das reicht für 10 km."
+    },
+    {
+      q: "Warum spüren wir die Zeitdilatation im Alltag nicht?",
+      opts: [
+        "Bei Alltagsgeschwindigkeiten ist v² / c² winzig, also γ ≈ 1.",
+        "Sie gilt nur im Weltall.",
+        "Unsere Uhren sind zu ungenau gebaut.",
+        "Die Erde ist ein absolutes Ruhesystem."
+      ],
+      a: 0,
+      fb: "Richtig! Selbst ein Flugzeug erreicht nur v ≈ 0,000001 c – der Effekt liegt im Nanosekundenbereich (aber GPS-Satelliten müssen ihn korrigieren!)."
+    },
+    {
+      q: "Lena fliegt mit 0,8 c (γ ≈ 1,67) zu einem Stern und zurück. Beim Wiedersehen …",
+      opts: [
+        "… ist Lena jünger als ihr Zwillingsbruder Ben.",
+        "… ist Ben jünger als Lena.",
+        "… sind beide gleich alt, weil Bewegung relativ ist.",
+        "… kann man das prinzipiell nicht entscheiden."
+      ],
+      a: 0,
+      fb: "Genau! Lena muss umkehren und wechselt dabei das Bezugssystem – diese Asymmetrie macht sie eindeutig zur Jüngeren."
+    }
+  ];
+
+  const card = $("quizCard");
+  let score = 0, answered = 0;
+
+  questions.forEach((Q, qi) => {
+    const div = document.createElement("div");
+    div.className = "quiz-q";
+    div.innerHTML = `<p class="q">${qi + 1}. ${Q.q}</p>`;
+    const opts = document.createElement("div");
+    opts.className = "quiz-options";
+    // Antworten mischen
+    const order = Q.opts.map((_, i) => i).sort(() => Math.random() - .5);
+    order.forEach(oi => {
+      const b = document.createElement("button");
+      b.textContent = Q.opts[oi];
+      b.addEventListener("click", () => {
+        if (div.dataset.done) return;
+        div.dataset.done = "1";
+        answered++;
+        if (oi === Q.a) { b.classList.add("correct"); score++; }
+        else {
+          b.classList.add("wrong");
+          [...opts.children].forEach((x, k) => { if (order[k] === Q.a) x.classList.add("correct"); });
+        }
+        fb.classList.add("show");
+        if (answered === questions.length) {
+          const s = $("quizScore");
+          s.style.display = "block";
+          const emoji = score === 5 ? "🏆 Perfekt – Einstein wäre stolz!" :
+                        score >= 3 ? "🚀 Stark! Fast alles verstanden." :
+                        "🔭 Schau dir die Kapitel noch einmal an – es lohnt sich!";
+          s.textContent = `Ergebnis: ${score} von ${questions.length} richtig. ${emoji}`;
+        }
+      });
+      opts.appendChild(b);
+    });
+    const fb = document.createElement("p");
+    fb.className = "quiz-feedback";
+    fb.textContent = "💡 " + Q.fb;
+    div.appendChild(opts);
+    div.appendChild(fb);
+    card.appendChild(div);
+  });
+  const scoreEl = document.createElement("p");
+  scoreEl.id = "quizScore";
+  card.appendChild(scoreEl);
+})();
+
+/* ---------- Aktive Nav-Markierung ---------- */
+(() => {
+  const links = document.querySelectorAll("nav a");
+  const secs = [...links].map(a => document.querySelector(a.getAttribute("href")));
+  const obs = new IntersectionObserver(es => {
+    es.forEach(e => {
+      if (e.isIntersecting) {
+        links.forEach(l => l.classList.toggle("active", l.getAttribute("href") === "#" + e.target.id));
+      }
+    });
+  }, { rootMargin: "-40% 0px -55% 0px" });
+  secs.forEach(s => s && obs.observe(s));
+})();
+</script>
+</body>
+</html>
