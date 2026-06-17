@@ -1,0 +1,777 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Einsteins Fahrstuhl – Das Äquivalenzprinzip</title>
+<style>
+  :root{
+    --bg:#070b1a;
+    --bg2:#0e1530;
+    --panel:rgba(20,28,56,0.72);
+    --panel-line:rgba(120,150,255,0.18);
+    --accent:#5ad1ff;
+    --accent2:#ffd166;
+    --accent3:#ff6b9d;
+    --good:#5ee6a8;
+    --text:#eaf0ff;
+    --muted:#9fb0d8;
+    --shadow:0 18px 50px rgba(0,0,0,0.45);
+    --r:18px;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    font-family:"Segoe UI",system-ui,-apple-system,Roboto,Helvetica,Arial,sans-serif;
+    color:var(--text);
+    background:
+      radial-gradient(1200px 700px at 80% -10%, rgba(90,209,255,0.12), transparent 60%),
+      radial-gradient(900px 600px at 0% 20%, rgba(255,107,157,0.10), transparent 55%),
+      linear-gradient(160deg, var(--bg), var(--bg2));
+    background-attachment:fixed;
+    line-height:1.6;
+    overflow-x:hidden;
+  }
+  /* drifting stars background */
+  .starfield{position:fixed;inset:0;z-index:-1;overflow:hidden;}
+  .star{position:absolute;background:#fff;border-radius:50%;opacity:.7;animation:twinkle 4s infinite ease-in-out;}
+  @keyframes twinkle{0%,100%{opacity:.15;}50%{opacity:.9;}}
+
+  header.hero{
+    text-align:center;
+    padding:90px 20px 60px;
+    position:relative;
+  }
+  .badge{
+    display:inline-block;
+    font-size:.8rem;
+    letter-spacing:.18em;
+    text-transform:uppercase;
+    color:var(--accent);
+    border:1px solid var(--panel-line);
+    border-radius:999px;
+    padding:6px 16px;
+    margin-bottom:22px;
+    background:rgba(90,209,255,0.06);
+  }
+  h1{
+    font-size:clamp(2.1rem,6vw,4rem);
+    margin:0 0 12px;
+    line-height:1.05;
+    background:linear-gradient(120deg,#fff 10%,var(--accent) 55%,var(--accent3) 100%);
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+    text-shadow:0 8px 40px rgba(90,209,255,0.15);
+  }
+  .subtitle{color:var(--muted);max-width:680px;margin:0 auto 28px;font-size:1.12rem;}
+  .scroll-hint{color:var(--muted);font-size:.9rem;animation:bob 1.8s infinite;}
+  @keyframes bob{0%,100%{transform:translateY(0);}50%{transform:translateY(8px);}}
+
+  .quote{
+    max-width:760px;margin:0 auto 40px;padding:0 20px;
+    font-style:italic;color:#cdd9ff;font-size:1.15rem;border-left:3px solid var(--accent);
+    text-align:left;
+  }
+  .quote span{display:block;margin-top:8px;font-style:normal;color:var(--muted);font-size:.95rem;}
+
+  main{max-width:1060px;margin:0 auto;padding:0 18px 80px;}
+  section{margin:64px 0;}
+  .section-num{color:var(--accent);font-weight:700;letter-spacing:.1em;font-size:.85rem;}
+  h2{font-size:clamp(1.5rem,3.6vw,2.2rem);margin:6px 0 10px;}
+  h3{margin:0 0 8px;font-size:1.15rem;}
+  p.lead{color:var(--muted);font-size:1.05rem;max-width:760px;}
+
+  .card{
+    background:var(--panel);
+    border:1px solid var(--panel-line);
+    border-radius:var(--r);
+    box-shadow:var(--shadow);
+    backdrop-filter:blur(10px);
+    padding:26px;
+  }
+
+  /* ---- The lab ---- */
+  .lab-grid{display:grid;grid-template-columns:1.15fr .85fr;gap:22px;align-items:stretch;}
+  @media(max-width:820px){.lab-grid{grid-template-columns:1fr;}}
+  .stage-wrap{position:relative;}
+  canvas#stage{width:100%;height:auto;display:block;border-radius:14px;background:#04060f;border:1px solid var(--panel-line);}
+  .scenario-label{
+    position:absolute;top:14px;left:14px;right:14px;
+    display:flex;justify-content:space-between;gap:10px;pointer-events:none;flex-wrap:wrap;
+  }
+  .chip{
+    background:rgba(8,12,28,0.8);border:1px solid var(--panel-line);
+    border-radius:10px;padding:6px 12px;font-size:.82rem;color:var(--text);
+  }
+  .chip b{color:var(--accent2);}
+
+  .controls h3{margin-top:0;}
+  .scn-btn{
+    display:flex;align-items:center;gap:12px;width:100%;text-align:left;
+    background:rgba(12,18,40,0.7);border:1px solid var(--panel-line);color:var(--text);
+    border-radius:12px;padding:12px 14px;margin-bottom:10px;cursor:pointer;
+    transition:.18s;font-size:.96rem;
+  }
+  .scn-btn:hover{border-color:var(--accent);transform:translateX(3px);}
+  .scn-btn.active{border-color:var(--accent);background:linear-gradient(90deg,rgba(90,209,255,0.18),rgba(12,18,40,0.7));box-shadow:0 0 0 1px var(--accent) inset;}
+  .scn-btn .ico{font-size:1.5rem;line-height:1;}
+  .scn-btn .txt small{display:block;color:var(--muted);font-size:.78rem;}
+
+  .toolbar{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px;}
+  .tool{
+    flex:1;min-width:120px;background:rgba(12,18,40,0.7);border:1px solid var(--panel-line);
+    color:var(--text);border-radius:12px;padding:11px;cursor:pointer;font-size:.9rem;transition:.18s;
+  }
+  .tool:hover{border-color:var(--accent2);}
+  .tool.on{background:rgba(255,209,102,0.16);border-color:var(--accent2);}
+  .tool:active{transform:scale(.97);}
+
+  .explain{margin-top:16px;border-top:1px dashed var(--panel-line);padding-top:14px;font-size:.96rem;}
+  .explain .eyebrow{color:var(--accent3);font-weight:700;font-size:.8rem;letter-spacing:.08em;text-transform:uppercase;}
+
+  /* equivalence reveal */
+  .equiv{display:grid;grid-template-columns:1fr auto 1fr;gap:18px;align-items:center;margin-top:8px;}
+  @media(max-width:680px){.equiv{grid-template-columns:1fr;}.equiv .eq{transform:rotate(90deg);}}
+  .equiv .mini{background:rgba(12,18,40,0.7);border:1px solid var(--panel-line);border-radius:14px;padding:18px;text-align:center;}
+  .equiv .mini .big{font-size:2.4rem;}
+  .equiv .eq{font-size:2.6rem;color:var(--accent2);text-align:center;font-weight:800;}
+
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:18px;}
+  @media(max-width:680px){.grid2{grid-template-columns:1fr;}}
+
+  /* light demo */
+  canvas#light{width:100%;height:auto;display:block;border-radius:14px;background:#04060f;border:1px solid var(--panel-line);}
+
+  /* quiz */
+  .q{margin-bottom:22px;}
+  .q .opts{display:grid;gap:10px;margin-top:10px;}
+  .opt{
+    background:rgba(12,18,40,0.7);border:1px solid var(--panel-line);color:var(--text);
+    border-radius:12px;padding:12px 14px;text-align:left;cursor:pointer;transition:.15s;font-size:.96rem;
+  }
+  .opt:hover{border-color:var(--accent);}
+  .opt.correct{border-color:var(--good);background:rgba(94,230,168,0.16);}
+  .opt.wrong{border-color:var(--accent3);background:rgba(255,107,157,0.14);}
+  .opt:disabled{cursor:default;}
+  .feedback{margin-top:10px;font-size:.92rem;color:var(--muted);min-height:1.2em;}
+  .score{font-size:1.1rem;font-weight:700;}
+
+  footer{text-align:center;color:var(--muted);font-size:.85rem;padding:30px 18px 60px;}
+  .pill{display:inline-block;background:rgba(90,209,255,0.1);border:1px solid var(--panel-line);border-radius:999px;padding:4px 12px;margin:3px;font-size:.85rem;}
+  a{color:var(--accent);}
+  .kicker{color:var(--accent2);font-weight:700;}
+</style>
+</head>
+<body>
+<div class="starfield" id="starfield"></div>
+
+<header class="hero">
+  <div class="badge">Physik · Spezielle & Allgemeine Relativität · EF</div>
+  <h1>Einsteins Fahrstuhl</h1>
+  <p class="subtitle">Ein Gedankenexperiment, das Gravitation und Beschleunigung zu ein und derselben Sache macht – zum Anfassen, Ausprobieren und Staunen.</p>
+  <div class="scroll-hint">↓ scrolle &amp; experimentiere</div>
+</header>
+
+<main>
+
+  <div class="quote card">
+    „Ich saß auf meinem Stuhl im Patentamt in Bern. Da kam mir plötzlich ein Gedanke:
+    <b>Wenn ein Mensch frei fällt, spürt er sein eigenes Gewicht nicht.</b> Ich war überrascht.
+    Dieser einfache Gedanke machte tiefen Eindruck auf mich. Er trieb mich hin zur Theorie der Gravitation.“
+    <span>— Albert Einstein, über den „glücklichsten Gedanken seines Lebens“ (1907)</span>
+  </div>
+
+  <!-- SECTION 1 -->
+  <section id="frage">
+    <div class="section-num">01 — DIE GROSSE FRAGE</div>
+    <h2>Stehst du oder beschleunigst du?</h2>
+    <p class="lead">
+      Stell dir vor, du wachst in einem fensterlosen Aufzug auf. Du stehst fest auf dem Boden, ein Apfel fällt nach unten.
+      Bist du <span class="kicker">auf der Erde</span> – oder rast du gerade mit einer Rakete durchs All und wirst <span class="kicker">beschleunigt</span>?
+      Einstein behauptete: <b>Du kannst es mit keinem Experiment im Inneren unterscheiden.</b> Das ist das
+      <span class="kicker">Äquivalenzprinzip</span> – das Herz der Allgemeinen Relativitätstheorie.
+    </p>
+  </section>
+
+  <!-- SECTION 2: THE LAB -->
+  <section id="labor">
+    <div class="section-num">02 — DAS FAHRSTUHL-LABOR</div>
+    <h2>Probier es selbst aus</h2>
+    <p class="lead">Wähle eine Situation und lass den Ball los. Achte darauf, wie sich die Person und der Ball verhalten – und vergleiche!</p>
+
+    <div class="lab-grid card" style="margin-top:18px;">
+      <div class="stage-wrap">
+        <canvas id="stage" width="520" height="600"></canvas>
+        <div class="scenario-label">
+          <div class="chip" id="chipMode">Modus: <b>—</b></div>
+          <div class="chip" id="chipG">empfundene Schwerkraft: <b>—</b></div>
+        </div>
+      </div>
+
+      <div class="controls">
+        <h3>Wo bist du?</h3>
+        <button class="scn-btn" data-scn="space"><span class="ico">🌌</span><span class="txt">Schwerelos im All<small>Rakete aus, kein Antrieb</small></span></button>
+        <button class="scn-btn" data-scn="rocket"><span class="ico">🚀</span><span class="txt">Rakete beschleunigt<small>Schub mit a = 9,81 m/s²</small></span></button>
+        <button class="scn-btn" data-scn="earth"><span class="ico">🌍</span><span class="txt">Stehend auf der Erde<small>Schwerkraft g = 9,81 m/s²</small></span></button>
+        <button class="scn-btn" data-scn="fall"><span class="ico">⬇️</span><span class="txt">Freier Fall<small>Seil gerissen – Aufzug stürzt</small></span></button>
+
+        <div class="toolbar">
+          <button class="tool" id="dropBtn">⚽ Ball loslassen</button>
+          <button class="tool" id="lightBtn">🔦 Lichtstrahl</button>
+        </div>
+
+        <div class="explain">
+          <div class="eyebrow" id="expTitle">Wähle eine Situation</div>
+          <div id="expText">Klicke links auf eine der vier Karten, um das Experiment zu starten.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- equivalence reveal -->
+    <div style="margin-top:26px;">
+      <h3>Das verblüffende Ergebnis</h3>
+      <div class="equiv">
+        <div class="mini"><div class="big">🚀</div><b>Rakete beschleunigt</b><br><small style="color:var(--muted)">Ball fällt nach unten</small></div>
+        <div class="eq">≡</div>
+        <div class="mini"><div class="big">🌍</div><b>Auf der Erde</b><br><small style="color:var(--muted)">Ball fällt nach unten</small></div>
+      </div>
+      <div class="equiv" style="margin-top:14px;">
+        <div class="mini"><div class="big">🌌</div><b>Schwerelos im All</b><br><small style="color:var(--muted)">Ball schwebt</small></div>
+        <div class="eq">≡</div>
+        <div class="mini"><div class="big">⬇️</div><b>Freier Fall</b><br><small style="color:var(--muted)">Ball schwebt</small></div>
+      </div>
+      <p class="lead" style="margin-top:16px;">
+        Innerhalb des Aufzugs sind diese Paare <b>nicht unterscheidbar</b>. Schwerkraft und Beschleunigung sind also
+        zwei Seiten derselben Medaille. Genau das nennt man <span class="kicker">Äquivalenzprinzip</span>.
+      </p>
+    </div>
+  </section>
+
+  <!-- SECTION 3: LIGHT BENDING -->
+  <section id="licht">
+    <div class="section-num">03 — DER GENIESTREICH: LICHT BIEGT SICH</div>
+    <h2>Wenn sogar Licht „fällt“</h2>
+    <p class="lead">
+      Jetzt wird es spannend. Schießt man einen Lichtstrahl waagerecht durch den beschleunigten Aufzug, trifft er an der
+      gegenüberliegenden Wand <b>etwas tiefer</b> auf – denn der Aufzug ist in der Zwischenzeit nach oben gerast.
+      Für die Person im Aufzug sieht es so aus, als wäre das Licht <b>nach unten gekrümmt</b>.
+    </p>
+    <div class="card" style="margin-top:16px;">
+      <div class="grid2">
+        <div>
+          <canvas id="light" width="520" height="320"></canvas>
+        </div>
+        <div>
+          <h3>Schiebe die Beschleunigung hoch</h3>
+          <p style="color:var(--muted);font-size:.95rem;">Je stärker beschleunigt (bzw. je stärker die Schwerkraft), desto deutlicher krümmt sich der Lichtweg.</p>
+          <input type="range" id="accSlider" min="0" max="100" value="35" style="width:100%;">
+          <div style="color:var(--muted);font-size:.9rem;margin-top:6px;">Beschleunigung: <b id="accVal" style="color:var(--accent2)">mittel</b></div>
+          <div class="explain" style="border-top:1px dashed var(--panel-line);margin-top:16px;">
+            <div class="eyebrow">Die Schlussfolgerung</div>
+            Wenn Beschleunigung das Licht krümmt – und Beschleunigung dasselbe ist wie Schwerkraft –
+            dann muss auch <b>Schwerkraft das Licht krümmen</b>. Große Massen wie die Sonne lenken Lichtstrahlen ab!
+            Genau das wurde 1919 bei einer Sonnenfinsternis gemessen und machte Einstein über Nacht weltberühmt.
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION 4: WHY IT MATTERS -->
+  <section id="folgen">
+    <div class="section-num">04 — WARUM DAS ALLES WICHTIG IST</div>
+    <h2>Von der Idee zum Alltag</h2>
+    <div class="grid2">
+      <div class="card">
+        <h3>🌞 Lichtablenkung an der Sonne</h3>
+        <p style="color:var(--muted)">Sterne erscheinen bei einer Sonnenfinsternis leicht verschoben, weil ihr Licht an der Sonne abgelenkt wird. Beobachtung 1919 → Einsteins Theorie bestätigt.</p>
+      </div>
+      <div class="card">
+        <h3>🛰️ Dein Handy-GPS</h3>
+        <p style="color:var(--muted)">Uhren auf GPS-Satelliten ticken im schwächeren Schwerefeld anders als auf der Erde. Ohne Einsteins Korrektur wäre GPS schon nach Minuten um Kilometer daneben.</p>
+      </div>
+      <div class="card">
+        <h3>🕳️ Schwarze Löcher</h3>
+        <p style="color:var(--muted)">Dort ist die Raumzeit-Krümmung so extrem, dass nicht einmal Licht entkommt. 2019 wurde das erste Bild eines Schwarzen Lochs aufgenommen.</p>
+      </div>
+      <div class="card">
+        <h3>🌊 Gravitationswellen</h3>
+        <p style="color:var(--muted)">Beschleunigte Massen erzeugen Wellen in der Raumzeit. 2015 erstmals direkt gemessen (LIGO) – 100 Jahre nach Einsteins Vorhersage.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION 5: QUIZ -->
+  <section id="quiz">
+    <div class="section-num">05 — TESTE DEIN WISSEN</div>
+    <h2>Mini-Quiz</h2>
+    <div class="card" id="quizCard">
+      <div class="q" data-correct="1">
+        <h3>1. Was besagt das Äquivalenzprinzip?</h3>
+        <div class="opts">
+          <button class="opt">Schwere Objekte fallen schneller als leichte.</button>
+          <button class="opt">Ein beschleunigtes Bezugssystem ist von einem Schwerefeld lokal nicht unterscheidbar.</button>
+          <button class="opt">Licht bewegt sich in jedem System unterschiedlich schnell.</button>
+        </div>
+        <div class="feedback"></div>
+      </div>
+
+      <div class="q" data-correct="2">
+        <h3>2. Du schwebst im Aufzug und alles ist schwerelos. Was ist plausibel?</h3>
+        <div class="opts">
+          <button class="opt">Die Rakete beschleunigt gerade kräftig.</button>
+          <button class="opt">Du stehst fest auf der Erde.</button>
+          <button class="opt">Der Aufzug befindet sich im freien Fall – oder antriebslos im All.</button>
+        </div>
+        <div class="feedback"></div>
+      </div>
+
+      <div class="q" data-correct="0">
+        <h3>3. Warum krümmt sich ein Lichtstrahl im beschleunigten Aufzug?</h3>
+        <div class="opts">
+          <button class="opt">Der Aufzug bewegt sich weiter, während das Licht ihn durchquert.</button>
+          <button class="opt">Licht hat Gewicht und wird müde.</button>
+          <button class="opt">Das Glas des Aufzugs wirkt wie eine Linse.</button>
+        </div>
+        <div class="feedback"></div>
+      </div>
+
+      <div class="q" data-correct="1">
+        <h3>4. Welche Alltagstechnik braucht Einsteins Gravitationstheorie zwingend?</h3>
+        <div class="opts">
+          <button class="opt">Bluetooth-Kopfhörer</button>
+          <button class="opt">GPS-Navigation</button>
+          <button class="opt">Mikrowellenherd</button>
+        </div>
+        <div class="feedback"></div>
+      </div>
+
+      <div class="score" id="score">Punkte: 0 / 4</div>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <div>
+    <span class="pill">Äquivalenzprinzip</span>
+    <span class="pill">Allgemeine Relativität</span>
+    <span class="pill">Freier Fall</span>
+    <span class="pill">Lichtablenkung</span>
+  </div>
+  <p>Interaktive Lernseite · erstellt für die Einführungsphase (EF) · Bewegung &amp; Physik zum Anfassen</p>
+</footer>
+
+<script>
+/* ---------- starfield ---------- */
+(function(){
+  const sf=document.getElementById('starfield');
+  const n=120;
+  for(let i=0;i<n;i++){
+    const s=document.createElement('div');
+    s.className='star';
+    const size=Math.random()*2+0.5;
+    s.style.width=size+'px';s.style.height=size+'px';
+    s.style.left=Math.random()*100+'%';
+    s.style.top=Math.random()*100+'%';
+    s.style.animationDelay=(Math.random()*4)+'s';
+    sf.appendChild(s);
+  }
+})();
+
+/* ===========================================================
+   FAHRSTUHL-LABOR  (main canvas simulation)
+   =========================================================== */
+(function(){
+  const cv=document.getElementById('stage');
+  const ctx=cv.getContext('2d');
+  const W=cv.width, H=cv.height;
+
+  // elevator geometry
+  const EL={x:120, y:70, w:280, h:470}; // inner box
+  const FLOOR=()=>EL.y+EL.h;            // floor y
+
+  let scenario=null;          // 'space','rocket','earth','fall'
+  let showLight=false;
+  let t=0;                    // time for animations
+  let stars=[];              // background star drift for space
+  for(let i=0;i<60;i++) stars.push({x:Math.random()*W,y:Math.random()*H,s:Math.random()*1.8+0.4});
+
+  // ball state (relative to elevator interior)
+  let ball={active:false, x:EL.x+EL.w*0.5, y:EL.y+EL.h*0.32, vy:0, vx:0, rest:false};
+  // person bob (for floating)
+  let personY=0, personV=0;
+
+  // light beam progress
+  let beam={on:false, x:0};
+
+  const META={
+    space :{mode:'Schwerelos im All', g:'0 (Schwebezustand)',
+            title:'Antriebslos im Weltall',
+            text:'Kein Antrieb, keine Masse in der Nähe: Person und Ball schweben frei. Lässt du den Ball los, bleibt er einfach an Ort und Stelle.'},
+    rocket:{mode:'Rakete beschleunigt', g:'9,81 m/s² (gefühlt)',
+            title:'Rakete mit Schub',
+            text:'Die Rakete beschleunigt nach oben. Der Boden drückt von unten gegen die Füße – genau wie Schwerkraft. Der losgelassene Ball „fällt“ zu Boden, weil der Aufzug nach oben unter ihm wegbeschleunigt.'},
+    earth :{mode:'Auf der Erde', g:'9,81 m/s²',
+            title:'Fest auf dem Boden',
+            text:'Die Schwerkraft zieht alles nach unten. Der Ball fällt mit g zu Boden. Vergleiche genau mit der beschleunigten Rakete – es sieht identisch aus!'},
+    fall  :{mode:'Freier Fall', g:'0 (Schwebezustand)',
+            title:'Der Aufzug stürzt',
+            text:'Das Seil ist gerissen, alles fällt gemeinsam mit g. Im Inneren wirkt alles schwerelos: Person und Ball schweben – ununterscheidbar vom antriebslosen All.'}
+  };
+
+  function gOf(s){ return (s==='rocket'||s==='earth') ? 0.16 : 0; } // px/frame^2 (scaled g inside elevator)
+  function hasGravityFeel(s){ return s==='rocket'||s==='earth'; }
+
+  function setScenario(s){
+    scenario=s;
+    ball.active=false; ball.rest=false;
+    ball.x=EL.x+EL.w*0.5; ball.y=EL.y+EL.h*0.32; ball.vy=0; ball.vx=0;
+    personY=0; personV=0;
+    beam.on=false; beam.x=0;
+    const m=META[s];
+    document.getElementById('chipMode').innerHTML='Modus: <b>'+m.mode+'</b>';
+    document.getElementById('chipG').innerHTML='empfundene Schwerkraft: <b>'+m.g+'</b>';
+    document.getElementById('expTitle').textContent=m.title;
+    document.getElementById('expText').textContent=m.text;
+    // buttons
+    document.querySelectorAll('.scn-btn').forEach(b=>b.classList.toggle('active',b.dataset.scn===s));
+  }
+
+  function dropBall(){
+    if(!scenario) return;
+    ball.active=true; ball.rest=false;
+    ball.x=EL.x+EL.w*0.5; ball.y=EL.y+EL.h*0.30; ball.vy=0; ball.vx=0;
+  }
+  function fireLight(){
+    if(!scenario) return;
+    beam.on=true; beam.x=0;
+  }
+
+  /* ---- drawing helpers ---- */
+  function drawPerson(px,py,scale){
+    ctx.save();
+    ctx.translate(px,py);
+    ctx.scale(scale,scale);
+    ctx.lineWidth=5; ctx.strokeStyle='#cfe0ff'; ctx.lineCap='round';
+    ctx.fillStyle='#cfe0ff';
+    // head
+    ctx.beginPath();ctx.arc(0,-46,11,0,7);ctx.fill();
+    // body
+    ctx.beginPath();ctx.moveTo(0,-34);ctx.lineTo(0,2);ctx.stroke();
+    // arms
+    ctx.beginPath();ctx.moveTo(0,-24);ctx.lineTo(-15,-6);ctx.moveTo(0,-24);ctx.lineTo(15,-6);ctx.stroke();
+    // legs
+    ctx.beginPath();ctx.moveTo(0,2);ctx.lineTo(-12,26);ctx.moveTo(0,2);ctx.lineTo(12,26);ctx.stroke();
+    ctx.restore();
+  }
+
+  function roundRect(x,y,w,h,r){
+    ctx.beginPath();
+    ctx.moveTo(x+r,y);
+    ctx.arcTo(x+w,y,x+w,y+h,r);
+    ctx.arcTo(x+w,y+h,x,y+h,r);
+    ctx.arcTo(x,y+h,x,y,r);
+    ctx.arcTo(x,y,x+w,y,r);
+    ctx.closePath();
+  }
+
+  function draw(){
+    t++;
+    ctx.clearRect(0,0,W,H);
+
+    // ---- background ----
+    if(scenario==='earth'){
+      // sky gradient + ground
+      const sky=ctx.createLinearGradient(0,0,0,H);
+      sky.addColorStop(0,'#0a1430');sky.addColorStop(1,'#13325a');
+      ctx.fillStyle=sky;ctx.fillRect(0,0,W,H);
+      // ground
+      ctx.fillStyle='#1c3a2a';ctx.fillRect(0,H-40,W,40);
+      ctx.fillStyle='#2a5740';ctx.fillRect(0,H-40,W,6);
+    } else {
+      // space
+      ctx.fillStyle='#04060f';ctx.fillRect(0,0,W,H);
+      // drifting stars (drift speed depends on motion)
+      let drift = scenario==='rocket'?2.4 : scenario==='fall'?-2.4 : 0.2;
+      ctx.fillStyle='#fff';
+      stars.forEach(st=>{
+        st.y += drift;
+        if(st.y>H) st.y=0; if(st.y<0) st.y=H;
+        ctx.globalAlpha=0.7;
+        ctx.fillRect(st.x,st.y,st.s,st.s);
+      });
+      ctx.globalAlpha=1;
+    }
+
+    // motion shake for rocket (gives sense of thrust)
+    let shake = scenario==='rocket' ? Math.sin(t*0.9)*1.2 : 0;
+    ctx.save();
+    ctx.translate(shake,0);
+
+    // ---- rocket flame (only rocket) ----
+    if(scenario==='rocket'){
+      const fx=EL.x+EL.w/2, fy=FLOOR()+14;
+      const flick=20+Math.sin(t*0.6)*8+Math.random()*8;
+      const g=ctx.createLinearGradient(0,fy,0,fy+flick+40);
+      g.addColorStop(0,'#fff3b0');g.addColorStop(.4,'#ffb347');g.addColorStop(1,'rgba(255,80,40,0)');
+      ctx.fillStyle=g;
+      ctx.beginPath();
+      ctx.moveTo(fx-26,fy);
+      ctx.quadraticCurveTo(fx,fy+flick+60,fx+26,fy);
+      ctx.closePath();ctx.fill();
+    }
+
+    // ---- elevator shell ----
+    // outer
+    ctx.fillStyle='rgba(20,28,56,0.55)';
+    roundRect(EL.x-14,EL.y-14,EL.w+28,EL.h+30,16);ctx.fill();
+    // inner walls
+    ctx.fillStyle='rgba(10,16,34,0.9)';
+    roundRect(EL.x,EL.y,EL.w,EL.h,8);ctx.fill();
+    ctx.strokeStyle='rgba(120,150,255,0.35)';ctx.lineWidth=3;
+    roundRect(EL.x,EL.y,EL.w,EL.h,8);ctx.stroke();
+    // floor line
+    ctx.strokeStyle='rgba(120,150,255,0.5)';ctx.lineWidth=4;
+    ctx.beginPath();ctx.moveTo(EL.x,FLOOR());ctx.lineTo(EL.x+EL.w,FLOOR());ctx.stroke();
+    // cable / hook on top
+    ctx.strokeStyle = scenario==='fall' ? 'rgba(255,107,157,0.9)' : 'rgba(150,170,220,0.7)';
+    ctx.lineWidth=3;
+    if(scenario==='fall'){
+      // broken cable
+      ctx.beginPath();ctx.moveTo(EL.x+EL.w/2,EL.y-14);ctx.lineTo(EL.x+EL.w/2-6,EL.y-40);ctx.stroke();
+      ctx.beginPath();ctx.moveTo(EL.x+EL.w/2+4,0);ctx.lineTo(EL.x+EL.w/2-2,EL.y-58);ctx.stroke();
+      // spark
+      ctx.fillStyle='#ffd166';ctx.beginPath();ctx.arc(EL.x+EL.w/2-4,EL.y-49,3,0,7);ctx.fill();
+    } else if(scenario==='earth'||scenario==='space'){
+      ctx.beginPath();ctx.moveTo(EL.x+EL.w/2,EL.y-14);ctx.lineTo(EL.x+EL.w/2,0);ctx.stroke();
+    }
+
+    // ---- person ----
+    let floating = !hasGravityFeel(scenario);
+    let baseFootY=FLOOR()-1;
+    if(floating){
+      // gentle bob in the middle
+      personV += Math.sin(t*0.04)*0.02;
+      personY = Math.sin(t*0.03)*10;
+      let cy=EL.y+EL.h*0.55+personY;
+      drawPerson(EL.x+EL.w*0.5, cy, 1.0);
+    } else {
+      drawPerson(EL.x+EL.w*0.5, baseFootY-26, 1.0);
+    }
+
+    // ---- ball physics ----
+    if(ball.active){
+      if(floating){
+        // floats: stays put (tiny drift)
+        ball.y += Math.sin(t*0.05)*0.15;
+      } else {
+        if(!ball.rest){
+          ball.vy += gOf(scenario);
+          ball.y += ball.vy;
+          if(ball.y >= FLOOR()-10){
+            ball.y=FLOOR()-10;
+            ball.vy*=-0.32;             // small bounce
+            if(Math.abs(ball.vy)<0.6){ball.vy=0;ball.rest=true;}
+          }
+        }
+      }
+      // draw ball
+      const bx=ball.x, by=ball.y;
+      const g2=ctx.createRadialGradient(bx-3,by-3,2,bx,by,11);
+      g2.addColorStop(0,'#fff');g2.addColorStop(1,'#ff8a3c');
+      ctx.fillStyle=g2;
+      ctx.beginPath();ctx.arc(bx,by,10,0,7);ctx.fill();
+      // motion trail when falling
+      if(!floating && !ball.rest && ball.vy>1){
+        ctx.strokeStyle='rgba(255,138,60,0.35)';ctx.lineWidth=6;ctx.lineCap='round';
+        ctx.beginPath();ctx.moveTo(bx,by-ball.vy*2);ctx.lineTo(bx,by);ctx.stroke();
+      }
+    }
+
+    // ---- light beam ----
+    if(beam.on){
+      beam.x += 6;
+      const startX=EL.x+6, startY=EL.y+EL.h*0.28;
+      const span=EL.w-12;
+      const prog=Math.min(beam.x,span);
+      // curvature: only if gravity-feel; drop ∝ (distance)^2
+      const k = hasGravityFeel(scenario)? 0.0016 : 0;
+      ctx.strokeStyle='rgba(90,209,255,0.95)';
+      ctx.lineWidth=3;ctx.shadowColor='#5ad1ff';ctx.shadowBlur=12;
+      ctx.beginPath();
+      for(let d=0; d<=prog; d+=4){
+        const yy=startY + k*d*d;
+        if(d===0)ctx.moveTo(startX+d,yy);else ctx.lineTo(startX+d,yy);
+      }
+      ctx.stroke();
+      ctx.shadowBlur=0;
+      // photon head
+      const yh=startY+k*prog*prog;
+      ctx.fillStyle='#dff6ff';ctx.beginPath();ctx.arc(startX+prog,yh,4,0,7);ctx.fill();
+      // dashed straight reference
+      if(hasGravityFeel(scenario)){
+        ctx.strokeStyle='rgba(255,255,255,0.22)';ctx.lineWidth=1.5;ctx.setLineDash([5,5]);
+        ctx.beginPath();ctx.moveTo(startX,startY);ctx.lineTo(startX+span,startY);ctx.stroke();
+        ctx.setLineDash([]);
+      }
+      if(beam.x>span+40) beam.on=false;
+    }
+
+    ctx.restore();
+
+    // arrow indicator (acceleration / gravity direction)
+    if(hasGravityFeel(scenario)){
+      ctx.save();
+      ctx.translate(W-46, H/2);
+      ctx.fillStyle=scenario==='rocket'?'#ffd166':'#5ee6a8';
+      ctx.font='12px sans-serif';ctx.textAlign='center';
+      if(scenario==='rocket'){
+        // accel arrow up
+        ctx.fillText('a',0,-58);
+        arrow(0,-50,0,40,ctx.fillStyle);
+      }else{
+        ctx.fillText('g',0,-58);
+        arrow(0,-50,0,40,ctx.fillStyle);
+      }
+      ctx.restore();
+    }
+
+    requestAnimationFrame(draw);
+  }
+  function arrow(x,y,dx,dy,color){
+    ctx.strokeStyle=color;ctx.fillStyle=color;ctx.lineWidth=3;ctx.lineCap='round';
+    ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x+dx,y+dy);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(x+dx,y+dy);ctx.lineTo(x+dx-5,y+dy-9);ctx.lineTo(x+dx+5,y+dy-9);ctx.closePath();ctx.fill();
+  }
+
+  // events
+  document.querySelectorAll('.scn-btn').forEach(b=>{
+    b.addEventListener('click',()=>setScenario(b.dataset.scn));
+  });
+  document.getElementById('dropBtn').addEventListener('click',dropBall);
+  const lightBtn=document.getElementById('lightBtn');
+  lightBtn.addEventListener('click',()=>{ fireLight(); lightBtn.classList.add('on'); setTimeout(()=>lightBtn.classList.remove('on'),300); });
+
+  setScenario('rocket'); // start with the eye-opener
+  draw();
+})();
+
+/* ===========================================================
+   LIGHT-BENDING DEMO (second canvas)
+   =========================================================== */
+(function(){
+  const cv=document.getElementById('light');
+  const ctx=cv.getContext('2d');
+  const W=cv.width,H=cv.height;
+  const slider=document.getElementById('accSlider');
+  const accVal=document.getElementById('accVal');
+  let t=0;
+
+  function label(v){
+    if(v<20)return 'sehr klein';
+    if(v<45)return 'mittel';
+    if(v<70)return 'stark';
+    return 'extrem (wie nahe einer Masse)';
+  }
+  slider.addEventListener('input',()=>{accVal.textContent=label(+slider.value);});
+  accVal.textContent=label(+slider.value);
+
+  function draw(){
+    t++;
+    ctx.clearRect(0,0,W,H);
+    ctx.fillStyle='#04060f';ctx.fillRect(0,0,W,H);
+
+    // elevator box rising
+    const k=(+slider.value)/100; // 0..1 curvature factor
+    const boxX=70,boxW=W-140,boxY=30,boxH=H-60;
+    ctx.strokeStyle='rgba(120,150,255,0.5)';ctx.lineWidth=3;
+    ctx.strokeRect(boxX,boxY,boxW,boxH);
+
+    // entry/exit markers
+    const startX=boxX, startY=boxY+boxH*0.32;
+    // straight reference
+    ctx.strokeStyle='rgba(255,255,255,0.25)';ctx.lineWidth=1.5;ctx.setLineDash([6,6]);
+    ctx.beginPath();ctx.moveTo(startX,startY);ctx.lineTo(boxX+boxW,startY);ctx.stroke();
+    ctx.setLineDash([]);
+
+    // curved light
+    const span=boxW;
+    const curv=0.0019*k;
+    ctx.strokeStyle='rgba(90,209,255,0.95)';ctx.lineWidth=3.5;
+    ctx.shadowColor='#5ad1ff';ctx.shadowBlur=14;
+    ctx.beginPath();
+    let endY=startY;
+    for(let d=0;d<=span;d+=3){
+      const yy=startY+curv*d*d;
+      endY=yy;
+      if(d===0)ctx.moveTo(startX+d,yy);else ctx.lineTo(startX+d,yy);
+    }
+    ctx.stroke();ctx.shadowBlur=0;
+
+    // moving photon
+    const ph=(t*4)%span;
+    const py=startY+curv*ph*ph;
+    ctx.fillStyle='#dff6ff';ctx.beginPath();ctx.arc(startX+ph,py,5,0,7);ctx.fill();
+
+    // labels
+    ctx.fillStyle='#9fb0d8';ctx.font='13px sans-serif';ctx.textAlign='left';
+    ctx.fillText('Lichteintritt',startX-6,startY-12);
+    ctx.fillStyle='#5ad1ff';ctx.textAlign='right';
+    ctx.fillText('Auftreffpunkt',boxX+boxW,endY+22);
+    // drop amount
+    const drop=Math.round(endY-startY);
+    ctx.fillStyle='#ffd166';ctx.textAlign='center';
+    ctx.fillText('Absenkung: '+drop+' px',W/2,H-14);
+
+    // up arrow showing box acceleration
+    ctx.save();ctx.translate(38,H/2);
+    ctx.strokeStyle='#ffd166';ctx.fillStyle='#ffd166';ctx.lineWidth=3;ctx.lineCap='round';
+    const len=20+k*40;
+    ctx.beginPath();ctx.moveTo(0,len/2);ctx.lineTo(0,-len/2);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(0,-len/2);ctx.lineTo(-5,-len/2+9);ctx.lineTo(5,-len/2+9);ctx.closePath();ctx.fill();
+    ctx.font='12px sans-serif';ctx.textAlign='center';ctx.fillText('a',0,len/2+16);
+    ctx.restore();
+
+    requestAnimationFrame(draw);
+  }
+  draw();
+})();
+
+/* ===========================================================
+   QUIZ
+   =========================================================== */
+(function(){
+  let score=0, answered=0;
+  const total=document.querySelectorAll('#quizCard .q').length;
+  const scoreEl=document.getElementById('score');
+  const FB={
+    ok:['Genau richtig! 🎉','Super! ✅','Stimmt! 👍','Perfekt! 🌟'],
+    no:'Nicht ganz – die richtige Antwort ist nun grün markiert.'
+  };
+  document.querySelectorAll('#quizCard .q').forEach(q=>{
+    const correct=+q.dataset.correct;
+    const opts=[...q.querySelectorAll('.opt')];
+    const fb=q.querySelector('.feedback');
+    opts.forEach((o,i)=>{
+      o.addEventListener('click',()=>{
+        if(q.dataset.done) return;
+        q.dataset.done='1';answered++;
+        opts.forEach(b=>b.disabled=true);
+        opts[correct].classList.add('correct');
+        if(i===correct){o.classList.add('correct');score++;fb.textContent=FB.ok[Math.floor(Math.random()*FB.ok.length)];}
+        else{o.classList.add('wrong');fb.textContent=FB.no;}
+        scoreEl.textContent='Punkte: '+score+' / '+total;
+        if(answered===total){
+          let msg = score===total?' — perfekt, du hast Einsteins Aufzug verstanden! 🚀'
+                    : score>=total/2?' — gut gemacht! Schau dir die markierten Antworten nochmal an.'
+                    : ' — kein Stress, scrolle hoch und experimentiere nochmal im Labor.';
+          scoreEl.textContent+=msg;
+        }
+      });
+    });
+  });
+})();
+</script>
+</body>
+</html>

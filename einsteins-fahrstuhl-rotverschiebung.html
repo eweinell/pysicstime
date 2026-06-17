@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Warum Licht müde wird – Einsteins Rotverschiebung</title>
+<style>
+  :root{
+    --ink:#1b1430;
+    --paper:#fff7ef;
+    --blue:#3a6df0;
+    --violet:#8a5cff;
+    --pink:#ff5d8f;
+    --red:#ff4d3d;
+    --orange:#ff9f1c;
+    --yellow:#ffd23f;
+    --green:#2ec4a0;
+    --cyan:#36d1dc;
+    --line:#1b1430;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    font-family:"Trebuchet MS","Segoe UI",Verdana,sans-serif;
+    color:var(--ink);
+    background:
+      radial-gradient(900px 500px at 85% -5%, rgba(255,210,63,.55), transparent 60%),
+      radial-gradient(800px 600px at 5% 10%, rgba(138,92,255,.45), transparent 55%),
+      radial-gradient(900px 700px at 60% 110%, rgba(54,209,220,.4), transparent 60%),
+      linear-gradient(160deg,#fff7ef,#ffe9f2 55%,#e8f7ff);
+    background-attachment:fixed;
+    line-height:1.6;
+    overflow-x:hidden;
+  }
+  /* floating playful blobs */
+  .floaty{position:fixed;z-index:-1;font-size:2.4rem;opacity:.5;animation:float 9s ease-in-out infinite;}
+  @keyframes float{0%,100%{transform:translateY(0) rotate(-6deg);}50%{transform:translateY(-26px) rotate(8deg);}}
+
+  .wrap{max-width:1000px;margin:0 auto;padding:0 18px 80px;}
+
+  /* ---- hero ---- */
+  header{text-align:center;padding:70px 18px 30px;position:relative;}
+  .kicker{
+    display:inline-block;background:var(--ink);color:#fff;font-weight:bold;
+    padding:7px 16px;border-radius:999px;font-size:.8rem;letter-spacing:.14em;text-transform:uppercase;
+    transform:rotate(-2deg);box-shadow:5px 5px 0 var(--pink);
+  }
+  h1{
+    font-size:clamp(2.2rem,7vw,4.4rem);margin:22px 0 6px;line-height:1.0;
+    letter-spacing:-1px;
+    text-shadow:4px 4px 0 #fff, 8px 8px 0 rgba(138,92,255,.35);
+  }
+  h1 .grad{
+    background:linear-gradient(90deg,var(--violet),var(--blue),var(--cyan),var(--green),var(--yellow),var(--orange),var(--red));
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+    background-size:200% auto;animation:shift 6s linear infinite;
+  }
+  @keyframes shift{to{background-position:200% center;}}
+  .sub{max-width:640px;margin:14px auto 0;font-size:1.15rem;color:#43345e;}
+
+  /* mascot */
+  .photi{display:inline-block;width:64px;height:64px;border-radius:50%;position:relative;vertical-align:middle;
+    background:radial-gradient(circle at 35% 30%,#fff,var(--yellow) 45%,var(--orange));
+    box-shadow:0 0 0 4px var(--ink),0 0 30px var(--yellow);}
+  .photi::before,.photi::after{content:"";position:absolute;top:24px;width:9px;height:9px;border-radius:50%;background:var(--ink);}
+  .photi::before{left:18px;}.photi::after{right:18px;}
+  .photi .mouth{position:absolute;left:24px;top:38px;width:16px;height:8px;border-radius:0 0 12px 12px;background:var(--ink);}
+
+  .bubble{
+    position:relative;background:#fff;border:3px solid var(--ink);border-radius:18px;padding:16px 18px;
+    box-shadow:6px 6px 0 rgba(27,20,48,.18);font-size:1rem;
+  }
+  .bubble.from-photi::after{content:"";position:absolute;left:40px;bottom:-16px;border:8px solid transparent;border-top-color:var(--ink);}
+  .speech-row{display:flex;gap:16px;align-items:flex-start;margin:18px 0;}
+  .speech-row .photi{flex:0 0 auto;}
+
+  /* sticker cards */
+  .sticker{
+    background:#fff;border:3px solid var(--ink);border-radius:22px;padding:24px;
+    box-shadow:8px 8px 0 rgba(27,20,48,.16);
+  }
+  .sticker.tilt{transform:rotate(-1deg);}
+  .sticker.tilt2{transform:rotate(1deg);}
+
+  section{margin:56px 0;}
+  .tag{display:inline-block;background:var(--yellow);border:2px solid var(--ink);border-radius:8px;padding:3px 10px;font-weight:bold;font-size:.8rem;transform:rotate(-2deg);}
+  h2{font-size:clamp(1.6rem,4vw,2.4rem);margin:12px 0 8px;}
+  p.lead{font-size:1.08rem;color:#3a2d52;max-width:760px;}
+  .hl{background:linear-gradient(transparent 55%, var(--yellow) 55%);padding:0 3px;font-weight:bold;}
+  .hl-pink{background:linear-gradient(transparent 55%, #ffc2d6 55%);padding:0 3px;font-weight:bold;}
+
+  /* ---- photon lift lab ---- */
+  .lab{display:grid;grid-template-columns:300px 1fr;gap:22px;align-items:stretch;}
+  @media(max-width:760px){.lab{grid-template-columns:1fr;}}
+  canvas#lift{width:100%;height:auto;display:block;border-radius:16px;border:3px solid var(--ink);background:#0c0a1f;}
+  .ctrl h3{margin:0 0 10px;}
+  .modebtns{display:flex;gap:10px;margin-bottom:14px;}
+  .mbtn{flex:1;background:#fff;border:3px solid var(--ink);border-radius:14px;padding:12px;cursor:pointer;font-weight:bold;font-size:.95rem;transition:.12s;box-shadow:3px 3px 0 rgba(27,20,48,.15);}
+  .mbtn:hover{transform:translateY(-2px);}
+  .mbtn:active{transform:translate(2px,2px);box-shadow:1px 1px 0 rgba(27,20,48,.15);}
+  .mbtn.on{background:var(--yellow);}
+  label.sl{display:block;font-weight:bold;margin:14px 0 4px;}
+  input[type=range]{width:100%;accent-color:var(--pink);}
+  .readout{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px;}
+  .meter{background:#0c0a1f;border:3px solid var(--ink);border-radius:14px;padding:10px;color:#fff;text-align:center;}
+  .meter small{display:block;color:#b9b3d6;font-size:.72rem;text-transform:uppercase;letter-spacing:.08em;}
+  .meter b{font-size:1.25rem;}
+  .emitC{color:#7aa2ff;}.recvC{color:#ff6b6b;}
+  .fire{margin-top:14px;width:100%;background:var(--pink);color:#fff;border:3px solid var(--ink);border-radius:14px;padding:13px;font-weight:bold;font-size:1.05rem;cursor:pointer;box-shadow:4px 4px 0 rgba(27,20,48,.2);}
+  .fire:active{transform:translate(2px,2px);box-shadow:2px 2px 0 rgba(27,20,48,.2);}
+  .note{margin-top:12px;font-size:.92rem;background:#f4eeff;border:2px dashed var(--violet);border-radius:12px;padding:10px;}
+
+  /* equivalence row */
+  .eqrow{display:grid;grid-template-columns:1fr auto 1fr;gap:16px;align-items:center;margin-top:18px;}
+  @media(max-width:620px){.eqrow{grid-template-columns:1fr;}}
+  .eqcard{background:#fff;border:3px solid var(--ink);border-radius:18px;padding:16px;text-align:center;box-shadow:5px 5px 0 rgba(27,20,48,.14);}
+  .eqcard .em{font-size:2.6rem;}
+  .eqsign{font-size:2.6rem;text-align:center;font-weight:900;color:var(--pink);}
+
+  /* clocks */
+  .clocks{display:flex;gap:30px;justify-content:center;flex-wrap:wrap;align-items:flex-end;margin-top:10px;}
+  .clockbox{text-align:center;}
+  .clockface{width:120px;height:120px;border-radius:50%;border:5px solid var(--ink);position:relative;background:#fff;box-shadow:5px 5px 0 rgba(27,20,48,.16);margin:0 auto;}
+  .hand{position:absolute;left:50%;bottom:50%;transform-origin:bottom center;background:var(--ink);border-radius:4px;}
+  .hh{width:5px;height:34px;margin-left:-2.5px;}
+  .mh{width:3px;height:48px;margin-left:-1.5px;background:var(--pink);}
+  .pivot{position:absolute;left:50%;top:50%;width:12px;height:12px;background:var(--ink);border-radius:50%;transform:translate(-50%,-50%);}
+  .clocktag{margin-top:8px;font-weight:bold;}
+  .drift{margin-top:16px;text-align:center;font-size:1.05rem;}
+  .drift b{color:var(--red);font-size:1.3rem;}
+
+  /* proof grid */
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:20px;}
+  @media(max-width:680px){.grid2{grid-template-columns:1fr;}}
+  .big-emoji{font-size:2.4rem;}
+
+  /* tower */
+  canvas#tower{width:100%;height:auto;display:block;border-radius:14px;border:3px solid var(--ink);background:#eaf6ff;}
+
+  /* quiz */
+  .q{margin-bottom:20px;}
+  .opts{display:grid;gap:10px;margin-top:10px;}
+  .opt{background:#fff;border:3px solid var(--ink);border-radius:14px;padding:12px 14px;text-align:left;cursor:pointer;font-size:.98rem;font-weight:bold;box-shadow:3px 3px 0 rgba(27,20,48,.13);transition:.12s;}
+  .opt:hover{transform:translateY(-2px);}
+  .opt.correct{background:#bff0dc;}
+  .opt.wrong{background:#ffd0d8;}
+  .opt:disabled{cursor:default;}
+  .fb{margin-top:8px;font-weight:bold;min-height:1.2em;}
+  .score{font-size:1.2rem;font-weight:900;margin-top:6px;}
+
+  footer{text-align:center;color:#5a4a78;padding:20px 18px 60px;}
+  .pill{display:inline-block;background:#fff;border:2px solid var(--ink);border-radius:999px;padding:4px 12px;margin:4px;font-weight:bold;font-size:.85rem;}
+  .confetti{position:fixed;width:10px;height:14px;z-index:50;pointer-events:none;}
+</style>
+</head>
+<body>
+<div class="floaty" style="left:4%;top:18%">🔴</div>
+<div class="floaty" style="left:90%;top:30%;animation-delay:1.5s">🔵</div>
+<div class="floaty" style="left:12%;top:70%;animation-delay:3s">✨</div>
+<div class="floaty" style="left:84%;top:78%;animation-delay:2s">🚀</div>
+<div class="floaty" style="left:48%;top:8%;animation-delay:4s">🌟</div>
+
+<div class="wrap">
+
+  <header>
+    <span class="kicker">Einstein zum Anfassen · EF</span>
+    <h1>Warum Licht <span class="grad">müde</span> wird</h1>
+    <p class="sub">Die gravitative Rotverschiebung – erklärt mit Einsteins Aufzug, einem klettermüden Photon und echten Messungen.</p>
+    <div class="speech-row" style="max-width:620px;margin:26px auto 0;">
+      <div class="photi"><span class="mouth"></span></div>
+      <div class="bubble from-photi">
+        Hi! Ich bin <b>Photi</b>, ein Lichtteilchen. Gleich klettere ich für dich nach oben – und du wirst sehen,
+        wie ich dabei meine Farbe verliere. Bereit? 👉 scroll runter und drück auf die Knöpfe!
+      </div>
+    </div>
+  </header>
+
+  <!-- recap -->
+  <section>
+    <span class="tag">Kurze Erinnerung</span>
+    <h2>Beschleunigung = Schwerkraft</h2>
+    <p class="lead">
+      Einstein sagte: In einem fensterlosen Aufzug kannst du nicht unterscheiden, ob dich die
+      <span class="hl">Schwerkraft der Erde</span> zu Boden drückt oder ob eine <span class="hl-pink">beschleunigte Rakete</span>
+      dich gegen den Boden presst. Beides fühlt sich exakt gleich an – das <b>Äquivalenzprinzip</b>.
+    </p>
+    <div class="eqrow">
+      <div class="eqcard"><div class="em">🚀</div><b>Rakete beschleunigt</b></div>
+      <div class="eqsign">≡</div>
+      <div class="eqcard"><div class="em">🌍</div><b>Schwerkraft der Erde</b></div>
+    </div>
+    <p class="lead" style="margin-top:16px;">
+      Jetzt der Clou: Was passiert mit <b>Licht</b>, das in so einem Aufzug von unten nach oben fliegt? 🤔
+    </p>
+  </section>
+
+  <!-- PHOTON LIFT -->
+  <section>
+    <span class="tag">Das Experiment</span>
+    <h2>Photis großer Aufstieg 🔵 → 🔴</h2>
+    <p class="lead">Schick Photi vom Boden zur Decke. Beobachte, wie sich seine Welle <b>streckt</b> und die Farbe von Blau Richtung Rot wandert. Wechsle zwischen Rakete und Erde – das Ergebnis ist gleich!</p>
+
+    <div class="sticker tilt" style="margin-top:18px;">
+      <div class="lab">
+        <div class="ctrl">
+          <h3>Steuerung</h3>
+          <div class="modebtns">
+            <button class="mbtn on" data-mode="rocket">🚀 Rakete</button>
+            <button class="mbtn" data-mode="earth">🌍 Erde</button>
+          </div>
+          <label class="sl">Höhe / Stärke des Felds: <b id="hVal">mittel</b></label>
+          <input type="range" id="hSlider" min="10" max="100" value="55">
+          <button class="fire" id="fireBtn">🔦 Photi losschicken!</button>
+
+          <div class="readout">
+            <div class="meter"><small>gesendet (unten)</small><b class="emitC" id="emitF">740</b><small>THz · blau</small></div>
+            <div class="meter"><small>empfangen (oben)</small><b class="recvC" id="recvF">—</b><small>THz</small></div>
+          </div>
+          <div class="note" id="modeNote">
+            🚀 <b>Rakete:</b> Während Photi nach oben fliegt, beschleunigt die Decke von ihm weg.
+            Der Empfänger „flieht" – wie beim Krankenwagen klingt die Sirene tiefer. Photi kommt <b>rotverschoben</b> an.
+          </div>
+        </div>
+
+        <div>
+          <canvas id="lift" width="560" height="560"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <div class="speech-row" style="margin-top:22px;">
+      <div class="photi"><span class="mouth"></span></div>
+      <div class="bubble from-photi">
+        Puh! Bergauf gegen die Schwerkraft kostet mich <b>Energie</b>. Aber ich bin Licht – ich werde nicht langsamer
+        (Lichtgeschwindigkeit bleibt!). Stattdessen sinkt meine <b>Frequenz</b>: weniger Energie pro Schwingung = röter. 🔴
+      </div>
+    </div>
+  </section>
+
+  <!-- time dilation -->
+  <section>
+    <span class="tag">Die Folge</span>
+    <h2>Unten ticken Uhren langsamer ⏰</h2>
+    <p class="lead">
+      Wenn Licht beim Aufsteigen Schwingungen „verliert", dann zählt eine Uhr <b>unten</b> langsamer als <b>oben</b>.
+      Die Schwerkraft <span class="hl">dehnt die Zeit</span>. Am Fuß eines Hochhauses bist du minimal jünger als im Dachgeschoss!
+    </p>
+    <div class="sticker tilt2" style="margin-top:16px;">
+      <div class="clocks">
+        <div class="clockbox">
+          <div class="clockface" id="clkTop">
+            <div class="hand hh" id="topHH"></div><div class="hand mh" id="topMH"></div><div class="pivot"></div>
+          </div>
+          <div class="clocktag">⬆️ Uhr oben (schneller)</div>
+        </div>
+        <div class="clockbox">
+          <div class="clockface" id="clkBot">
+            <div class="hand hh" id="botHH"></div><div class="hand mh" id="botMH"></div><div class="pivot"></div>
+          </div>
+          <div class="clocktag">⬇️ Uhr unten (langsamer)</div>
+        </div>
+      </div>
+      <div class="drift">aufgelaufener Unterschied: <b id="driftVal">0,00</b> Sekunden <span style="font-size:.85rem;color:#6a5a88">(hier stark übertrieben)</span></div>
+    </div>
+  </section>
+
+  <!-- proof -->
+  <section>
+    <span class="tag">Aber stimmt das auch?</span>
+    <h2>Zwei echte Beweise 🧪</h2>
+    <div class="grid2">
+      <div class="sticker">
+        <div class="big-emoji">🗼</div>
+        <h3>Pound &amp; Rebka, Harvard 1959</h3>
+        <p>In einem nur <b>22,5 m</b> hohen Turm schickten die Physiker Gammastrahlung nach oben. Die winzige
+        Rotverschiebung von etwa <b>2,5 · 10⁻¹⁵</b> wurde tatsächlich gemessen – genau wie Einstein es vorhersagte.</p>
+        <canvas id="tower" width="520" height="220"></canvas>
+      </div>
+      <div class="sticker">
+        <div class="big-emoji">🛰️</div>
+        <h3>Dein GPS rechnet mit Einstein</h3>
+        <p>Uhren auf GPS-Satelliten ticken im schwächeren Schwerefeld <b>schneller</b> – etwa
+        <b>38 Mikrosekunden pro Tag</b>. Ohne Einsteins Korrektur würde dein Handy-Navi schon nach einem Tag um
+        rund <b>10 Kilometer</b> danebenliegen!</p>
+        <div class="note" style="border-color:var(--green);background:#eafff7;">
+          🤓 Merke: Höher im Schwerefeld = Zeit läuft schneller. Tiefer = langsamer. Genau das zeigt Photis Aufstieg.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- quiz -->
+  <section>
+    <span class="tag">Check</span>
+    <h2>Mini-Quiz 🎯</h2>
+    <div class="sticker" id="quiz">
+      <div class="q" data-c="1">
+        <h3>1. Was passiert mit Licht, das im Schwerefeld nach oben läuft?</h3>
+        <div class="opts">
+          <button class="opt">Es wird schneller als c.</button>
+          <button class="opt">Es wird rotverschoben (Frequenz sinkt).</button>
+          <button class="opt">Es wird blauverschoben (Frequenz steigt).</button>
+        </div><div class="fb"></div>
+      </div>
+      <div class="q" data-c="2">
+        <h3>2. Warum „flieht" der Empfänger in der beschleunigten Rakete vom Licht?</h3>
+        <div class="opts">
+          <button class="opt">Weil Licht den Aufzug abbremst.</button>
+          <button class="opt">Weil der Empfänger schwerer wird.</button>
+          <button class="opt">Weil die Rakete in der Flugzeit des Lichts weiter beschleunigt – Doppler-Effekt.</button>
+        </div><div class="fb"></div>
+      </div>
+      <div class="q" data-c="0">
+        <h3>3. Welche Uhr geht langsamer?</h3>
+        <div class="opts">
+          <button class="opt">Die Uhr tiefer im Schwerefeld (unten).</button>
+          <button class="opt">Die Uhr höher im Schwerefeld (oben).</button>
+          <button class="opt">Beide gehen exakt gleich.</button>
+        </div><div class="fb"></div>
+      </div>
+      <div class="q" data-c="1">
+        <h3>4. Welches Experiment wies die Rotverschiebung auf der Erde nach?</h3>
+        <div class="opts">
+          <button class="opt">Das Doppelspalt-Experiment.</button>
+          <button class="opt">Das Pound-Rebka-Experiment (1959).</button>
+          <button class="opt">Das Michelson-Morley-Experiment.</button>
+        </div><div class="fb"></div>
+      </div>
+      <div class="score" id="score">Punkte: 0 / 4</div>
+    </div>
+  </section>
+
+</div>
+
+<footer>
+  <div>
+    <span class="pill">Gravitative Rotverschiebung</span>
+    <span class="pill">Äquivalenzprinzip</span>
+    <span class="pill">Zeitdilatation</span>
+    <span class="pill">Pound-Rebka</span>
+    <span class="pill">GPS</span>
+  </div>
+  <p>Verspielte Lernseite für die Einführungsphase · inspiriert von Einsteins Aufzug-Gedankenexperiment 🚀</p>
+</footer>
+
+<script>
+/* ============ frequency -> color helper ============ */
+// map p=0 (emitted, blue/violet) .. p=1 (red)
+function freqColor(p){
+  // hue from 265 (blue-violet) down to 0 (red)
+  const hue = 265*(1-p);
+  return `hsl(${hue},90%,60%)`;
+}
+
+/* ============ PHOTON LIFT ============ */
+(function(){
+  const cv=document.getElementById('lift'), ctx=cv.getContext('2d');
+  const W=cv.width,H=cv.height;
+  let mode='rocket';
+  let strength=0.55;          // from slider (0..1)
+  const TOPY=70, BOTY=H-70;   // travel range
+  const cx=W/2;
+  let t=0;
+  let photon={active:false, y:BOTY};
+  let stars=[];
+  for(let i=0;i<70;i++) stars.push({x:Math.random()*W,y:Math.random()*H,s:Math.random()*2+0.5});
+  const EMIT_F=740;           // THz, "blue"
+
+  const hVal=document.getElementById('hVal');
+  const slider=document.getElementById('hSlider');
+  function lab(v){return v<35?'klein':v<70?'mittel':'groß';}
+  slider.addEventListener('input',()=>{strength=slider.value/100;hVal.textContent=lab(+slider.value);});
+  hVal.textContent=lab(+slider.value);
+
+  // p along travel: 0 at bottom .. 1 at top
+  function progress(y){ return (BOTY - y)/(BOTY-TOPY); }
+  // shift factor scaled by strength (exaggerated for visibility)
+  function shiftAt(p){ return p*strength*0.9; } // up to 0.9 -> strong reddening
+
+  document.querySelectorAll('.mbtn').forEach(b=>{
+    b.addEventListener('click',()=>{
+      mode=b.dataset.mode;
+      document.querySelectorAll('.mbtn').forEach(x=>x.classList.toggle('on',x===b));
+      const note=document.getElementById('modeNote');
+      if(mode==='rocket'){
+        note.innerHTML='🚀 <b>Rakete:</b> Während Photi nach oben fliegt, beschleunigt die Decke von ihm weg. Der Empfänger „flieht" – wie beim Krankenwagen klingt die Sirene tiefer. Photi kommt <b>rotverschoben</b> an.';
+      }else{
+        note.innerHTML='🌍 <b>Erde:</b> Photi klettert aus dem Schwerefeld heraus und verliert dabei Energie. Exakt dasselbe Ergebnis wie in der Rakete – das ist das Äquivalenzprinzip!';
+      }
+    });
+  });
+
+  document.getElementById('fireBtn').addEventListener('click',()=>{
+    photon.active=true; photon.y=BOTY;
+    document.getElementById('recvF').textContent='…';
+  });
+
+  function drawWavePacket(y){
+    const p=progress(y);
+    const s=shiftAt(p);
+    // wavelength grows with shift; amplitude in x
+    const wl = 14 + s*42;
+    const amp = 16;
+    const half=46; // packet half-height
+    ctx.lineWidth=3.5;
+    ctx.strokeStyle=freqColor(s);
+    ctx.shadowColor=freqColor(s);ctx.shadowBlur=16;
+    ctx.beginPath();
+    for(let dy=-half;dy<=half;dy++){
+      const env=Math.exp(-(dy*dy)/(2*28*28)); // gaussian envelope
+      const xx=cx + Math.sin((dy)/wl*Math.PI*2 + t*0.25)*amp*env;
+      const yy=y+dy;
+      if(dy===-half)ctx.moveTo(xx,yy);else ctx.lineTo(xx,yy);
+    }
+    ctx.stroke();
+    ctx.shadowBlur=0;
+    // glowing core
+    ctx.fillStyle=freqColor(s);
+    ctx.beginPath();ctx.arc(cx,y,5,0,7);ctx.fill();
+  }
+
+  function draw(){
+    t++;
+    ctx.clearRect(0,0,W,H);
+    // bg
+    if(mode==='earth'){
+      const g=ctx.createLinearGradient(0,0,0,H);
+      g.addColorStop(0,'#13204a');g.addColorStop(1,'#1d3a6e');
+      ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
+      // ground
+      ctx.fillStyle='#23502f';ctx.fillRect(0,H-26,W,26);
+      ctx.fillStyle='#2f6b40';ctx.fillRect(0,H-26,W,5);
+    }else{
+      ctx.fillStyle='#0c0a1f';ctx.fillRect(0,0,W,H);
+      const drift = photon.active?3.0:0.4;
+      ctx.fillStyle='#fff';
+      stars.forEach(st=>{st.y+=drift;if(st.y>H)st.y=0;ctx.globalAlpha=.8;ctx.fillRect(st.x,st.y,st.s,st.s);});
+      ctx.globalAlpha=1;
+    }
+
+    // shaft / tube
+    const tubeW=140;
+    ctx.strokeStyle='rgba(255,255,255,.25)';ctx.lineWidth=2;
+    ctx.strokeRect(cx-tubeW/2,TOPY-20,tubeW,(BOTY-TOPY)+40);
+
+    // emitter (bottom) & detector (top)
+    // detector
+    const recvActive = photon.active && progress(photon.y)>0.96;
+    ctx.fillStyle=recvActive?'#ff6b6b':'#6a6a8a';
+    ctx.beginPath();ctx.arc(cx,TOPY-20,12,0,7);ctx.fill();
+    ctx.fillStyle='#fff';ctx.font='11px sans-serif';ctx.textAlign='center';
+    ctx.fillText('Empfänger',cx,TOPY-40);
+    // emitter
+    ctx.fillStyle='#7aa2ff';ctx.beginPath();ctx.arc(cx,BOTY+20,12,0,7);ctx.fill();
+    ctx.fillText('Sender',cx,BOTY+44);
+
+    // rocket flame
+    if(mode==='rocket'){
+      const fy=BOTY+34;const flick=18+Math.sin(t*0.7)*7+Math.random()*7;
+      const g=ctx.createLinearGradient(0,fy,0,fy+flick+34);
+      g.addColorStop(0,'#fff3b0');g.addColorStop(.4,'#ff9f1c');g.addColorStop(1,'rgba(255,77,61,0)');
+      ctx.fillStyle=g;ctx.beginPath();ctx.moveTo(cx-22,fy);ctx.quadraticCurveTo(cx,fy+flick+48,cx+22,fy);ctx.closePath();ctx.fill();
+    }
+
+    // up-arrow indicator
+    ctx.save();ctx.translate(W-34,H/2);
+    ctx.strokeStyle=mode==='rocket'?'#ffd23f':'#2ec4a0';ctx.fillStyle=ctx.strokeStyle;ctx.lineWidth=3;ctx.lineCap='round';
+    ctx.beginPath();ctx.moveTo(0,26);ctx.lineTo(0,-26);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(0,-26);ctx.lineTo(-5,-17);ctx.lineTo(5,-17);ctx.closePath();ctx.fill();
+    ctx.font='12px sans-serif';ctx.textAlign='center';ctx.fillText(mode==='rocket'?'a':'g',0,42);
+    ctx.restore();
+
+    // photon motion
+    if(photon.active){
+      photon.y -= 3.2;
+      drawWavePacket(photon.y);
+      // live frequency readout
+      const p=progress(photon.y);
+      const s=shiftAt(Math.min(p,1));
+      const fNow=Math.round(EMIT_F*(1-s));
+      document.getElementById('recvF').textContent=fNow;
+      document.getElementById('recvF').style.color=freqColor(Math.min(s,1));
+      if(photon.y<=TOPY){
+        photon.active=false;
+        // final received value
+        const sf=shiftAt(1);
+        document.getElementById('recvF').textContent=Math.round(EMIT_F*(1-sf));
+        document.getElementById('recvF').style.color=freqColor(sf);
+      }
+    }
+    requestAnimationFrame(draw);
+  }
+  draw();
+})();
+
+/* ============ CLOCKS (gravitational time dilation, exaggerated) ============ */
+(function(){
+  const topHH=document.getElementById('topHH'),topMH=document.getElementById('topMH');
+  const botHH=document.getElementById('botHH'),botMH=document.getElementById('botMH');
+  const driftVal=document.getElementById('driftVal');
+  let tTop=0,tBot=0;
+  const RATE=12;          // top seconds per real second (sped up)
+  const SLOW=0.55;        // bottom runs at 55% of top
+  let last=performance.now();
+  function tick(now){
+    const dt=(now-last)/1000;last=now;
+    tTop += dt*RATE;
+    tBot += dt*RATE*SLOW;
+    setHands(topHH,topMH,tTop);
+    setHands(botHH,botMH,tBot);
+    driftVal.textContent=(tTop-tBot).toFixed(2).replace('.',',');
+    requestAnimationFrame(tick);
+  }
+  function setHands(hh,mh,sec){
+    const min=sec/60, hr=sec/3600;
+    mh.style.transform=`rotate(${(min%60)*6}deg)`;
+    hh.style.transform=`rotate(${(hr%12)*30}deg)`;
+  }
+  requestAnimationFrame(tick);
+})();
+
+/* ============ POUND-REBKA TOWER ============ */
+(function(){
+  const cv=document.getElementById('tower'),ctx=cv.getContext('2d');
+  const W=cv.width,H=cv.height;let t=0;
+  function draw(){
+    t++;
+    ctx.clearRect(0,0,W,H);
+    // sky
+    const g=ctx.createLinearGradient(0,0,0,H);g.addColorStop(0,'#cdeaff');g.addColorStop(1,'#eaf6ff');
+    ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
+    // ground
+    ctx.fillStyle='#7ec47e';ctx.fillRect(0,H-24,W,24);
+    // tower
+    const tx=W*0.5-24, tw=48, ty=24, tb=H-24;
+    ctx.fillStyle='#b9a07a';ctx.strokeStyle='#1b1430';ctx.lineWidth=3;
+    ctx.fillRect(tx,ty,tw,tb-ty);ctx.strokeRect(tx,ty,tw,tb-ty);
+    // floors
+    ctx.strokeStyle='rgba(27,20,48,.3)';ctx.lineWidth=1;
+    for(let y=ty+20;y<tb;y+=22){ctx.beginPath();ctx.moveTo(tx,y);ctx.lineTo(tx+tw,y);ctx.stroke();}
+    // labels
+    ctx.fillStyle='#1b1430';ctx.font='bold 12px sans-serif';ctx.textAlign='left';
+    ctx.fillText('Detektor (oben)',tx+tw+10,ty+14);
+    ctx.fillText('Quelle (unten)',tx+tw+10,tb-6);
+    ctx.fillText('22,5 m',tx-70,(ty+tb)/2);
+    // height arrow
+    ctx.strokeStyle='#1b1430';ctx.lineWidth=1.5;
+    ctx.beginPath();ctx.moveTo(tx-14,ty);ctx.lineTo(tx-14,tb);ctx.stroke();
+    // gamma photon rising
+    const span=tb-ty-20;
+    const ph=(t*1.4)%span;
+    const y=tb-10-ph;
+    const p=ph/span;
+    const hue=265*(1-p);
+    ctx.strokeStyle=`hsl(${hue},90%,55%)`;ctx.lineWidth=3;
+    ctx.shadowColor=ctx.strokeStyle;ctx.shadowBlur=10;
+    const cxp=tx+tw/2, wl=6+p*10;
+    ctx.beginPath();
+    for(let d=-14;d<=14;d++){const xx=cxp+Math.sin(d/wl*6.28+t*0.3)*8;ctx.lineTo(xx,y+d);}
+    ctx.stroke();ctx.shadowBlur=0;
+    requestAnimationFrame(draw);
+  }
+  draw();
+})();
+
+/* ============ QUIZ + confetti ============ */
+(function(){
+  let score=0,answered=0;
+  const qs=document.querySelectorAll('#quiz .q');
+  const total=qs.length;
+  const scoreEl=document.getElementById('score');
+  const OK=['Stark! 🎉','Genau! ✅','Richtig! 🌟','Top! 🚀'];
+  qs.forEach(q=>{
+    const c=+q.dataset.c, opts=[...q.querySelectorAll('.opt')], fb=q.querySelector('.fb');
+    opts.forEach((o,i)=>o.addEventListener('click',()=>{
+      if(q.dataset.done)return;q.dataset.done='1';answered++;
+      opts.forEach(b=>b.disabled=true);opts[c].classList.add('correct');
+      if(i===c){o.classList.add('correct');score++;fb.textContent=OK[Math.floor(Math.random()*OK.length)];fb.style.color='#179a6e';}
+      else{o.classList.add('wrong');fb.textContent='Knapp daneben – richtig ist Grün. 🔴';fb.style.color='#d63a3a';}
+      scoreEl.textContent='Punkte: '+score+' / '+total;
+      if(answered===total){
+        scoreEl.textContent+= score===total?' — Photi ist stolz auf dich! 🏆':
+          score>=total/2?' — gut gemacht! 👍':' — scroll hoch und spiel nochmal mit Photi! 🔦';
+        if(score===total) confetti();
+      }
+    }));
+  });
+  function confetti(){
+    const colors=['#3a6df0','#8a5cff','#ff5d8f','#ff4d3d','#ffd23f','#2ec4a0'];
+    for(let i=0;i<90;i++){
+      const c=document.createElement('div');c.className='confetti';
+      c.style.left=Math.random()*100+'vw';c.style.top='-20px';
+      c.style.background=colors[i%colors.length];
+      c.style.transform=`rotate(${Math.random()*360}deg)`;
+      document.body.appendChild(c);
+      const dur=2200+Math.random()*1600, drift=(Math.random()-.5)*240;
+      c.animate([{transform:`translate(0,0) rotate(0deg)`},{transform:`translate(${drift}px,110vh) rotate(${720*Math.random()}deg)`}],
+        {duration:dur,easing:'cubic-bezier(.3,.6,.5,1)'}).onfinish=()=>c.remove();
+    }
+  }
+})();
+</script>
+</body>
+</html>
